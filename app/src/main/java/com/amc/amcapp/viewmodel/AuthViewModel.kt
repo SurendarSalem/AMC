@@ -1,8 +1,11 @@
 package com.amc.amcapp.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
+import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.AuthResult
+import com.amc.amcapp.ui.Screen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -14,16 +17,17 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     private val _authState: MutableStateFlow<AuthResult> = MutableStateFlow(AuthResult.Nothing())
     val authState = _authState.asStateFlow()
 
-    var showToast = MutableSharedFlow<String>()
+    var showToast = MutableSharedFlow<NotifyState>()
 
     suspend fun signIn(email: String, password: String) {
         _authState.value = AuthResult.Loading("Signing in...")
         authRepository.signIn(email, password).collect { result ->
             if (result is AuthResult.Success) {
-                showToast.emit("Welcome back!")
+                showToast.emit(NotifyState.ShowToast("Welcome ${result.user?.displayName ?: "User"}!"))
+                showToast.emit(NotifyState.Navigate(Screen.AddGymScreen.route))
             } else if (result is AuthResult.Error) {
                 result.message?.let {
-                    showToast.emit(it)
+                    showToast.emit(NotifyState.ShowToast(it))
                 }
             }
             _authState.value = result
@@ -50,5 +54,10 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         } else {
             "Verify Code"
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("Surendar", "AuthViewModel cleared")
     }
 }

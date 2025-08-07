@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.amc.amcapp.R
+import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.AuthResult
 import com.amc.amcapp.ui.HomeActivity
 import com.amc.amcapp.ui.Screen
@@ -65,7 +66,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     val loginResult by authViewModel.authState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val activity = context as? Activity
+    context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
     var isButtonClicked by remember { mutableStateOf(false) }
 
@@ -73,10 +74,12 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             authViewModel.showToast.collect { message ->
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                activity?.finish()
-                val intent = Intent(context, HomeActivity::class.java)
-                context.startActivity(intent)
+                if (message is NotifyState.ShowToast) {
+                    Toast.makeText(context, message.message, Toast.LENGTH_SHORT).show()
+                } else if (message is NotifyState.Navigate) {
+                    val intent = Intent(context, HomeActivity::class.java)
+                    context.startActivity(intent)
+                }
             }
         }
     }
@@ -115,6 +118,12 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             verticalArrangement = Arrangement.Center
         ) {
 
+            Text(
+                text = "Login",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(bottom = 16.dp),
+                color = MaterialTheme.colorScheme.onBackground
+            )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = username,
