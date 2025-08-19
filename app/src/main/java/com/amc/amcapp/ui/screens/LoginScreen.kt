@@ -3,8 +3,6 @@ package com.amc.amcapp.ui.screens
 import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,16 +12,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,23 +37,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.amc.amcapp.R
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.AuthResult
-import com.amc.amcapp.ui.HomeActivity
+import com.amc.amcapp.ui.EmailField
+import com.amc.amcapp.ui.LandingActivity
+import com.amc.amcapp.ui.PasswordField
 import com.amc.amcapp.ui.Screen
-import com.amc.amcapp.ui.ui.CurvedBackground
+import com.amc.amcapp.ui.showSnackBar
+import com.amc.amcapp.ui.theme.Dimens
+import com.amc.amcapp.ui.ui.CurvedBanner
+import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -66,50 +68,27 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     val loginResult by authViewModel.authState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
     var isButtonClicked by remember { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
 
 
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             authViewModel.showToast.collect { message ->
                 if (message is NotifyState.ShowToast) {
-                    Toast.makeText(context, message.message, Toast.LENGTH_SHORT).show()
+                    showSnackBar(this, snackBarHostState, message.message)
                 } else if (message is NotifyState.Navigate) {
-                    val intent = Intent(context, HomeActivity::class.java)
+                    val intent = Intent(context, LandingActivity::class.java)
                     context.startActivity(intent)
                 }
             }
         }
     }
-
     Box(
-        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize()
     ) {
-        CurvedBackground(
-            color = Color(0xFF6650a4), modifier = Modifier
-                .fillMaxWidth()
-                .align(
-                    Alignment.TopCenter
-                )
-                .height(120.dp)
-        )
-        Image(
-            painter = painterResource(id = R.drawable.gym),
-            contentDescription = "A description of my image",
-            modifier = Modifier
-                .size(90.dp)
-                .offset(y = 65.dp)
-                .align(Alignment.TopCenter)
-                .clip(CircleShape)
-                .border(
-                    width = 1.dp,
-                    color = Color(0xFF6650a4), // Purple border
-                    shape = CircleShape
-                )
-        )
-
+        CurvedBanner()
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -119,35 +98,33 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
         ) {
 
             Text(
-                text = "Login",
+                text = "Welcome back!",
                 style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 8.dp),
                 color = MaterialTheme.colorScheme.onBackground
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = username,
+            Text(
+                text = "Login into your existing account of AMC",
+                modifier = Modifier.padding(bottom = 16.dp),
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            EmailField(
+                text = username,
                 onValueChange = { username = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = password,
+            PasswordField(
+                text = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (isButtonClicked && !authViewModel.isValidUser(username, password)) {
                 Text(
                     "Please enter valid email id and password",
                     color = MaterialTheme.colorScheme.error,
-                    fontSize = 14.sp,
+                    fontSize = Dimens.MediumText,
                     modifier = Modifier
-                        .align(
-                            Alignment.Start
-                        )
+                        .align(Alignment.Start)
                         .padding(horizontal = 4.dp)
                 )
             }
@@ -163,7 +140,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
                         if (loginResult !is AuthResult.Loading) {
                             navController.navigate(Screen.ForgotPassword.route)
                         }
-                    }, fontSize = 14.sp
+                    }, fontSize = Dimens.MediumText
                 )
 
                 Button(
@@ -179,14 +156,17 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
                     enabled = (loginResult !is AuthResult.Loading)
                 ) {
                     Text(
-                        "Login", modifier = Modifier.padding(horizontal = 18.dp), fontSize = 14.sp
+                        "Login",
+                        modifier = Modifier.padding(horizontal = 18.dp),
+                        fontSize = Dimens.MediumText
                     )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 "Don't have an account? Sign up",
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                fontSize = Dimens.MediumText,
                 modifier = Modifier
                     .wrapContentWidth()
                     .clickable {
@@ -196,8 +176,22 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
                     })
         }
 
+        SnackbarHost(
+            hostState = snackBarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
+
         if (loginResult is AuthResult.Loading) {
-            CircularProgressIndicator()
+            BubbleProgressBar(
+                count = 3,
+                dotSize = 8.dp,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.Center),
+                animationDurationMs = 300
+            )
         }
     }
 }

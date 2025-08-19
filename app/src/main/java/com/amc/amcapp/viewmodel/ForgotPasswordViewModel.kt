@@ -2,7 +2,6 @@ package com.amc.amcapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
-import com.amc.amcapp.ui.AuthResult
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -19,7 +18,7 @@ sealed class ForgotPasswordResult {
     object Nothing : ForgotPasswordResult()
 }
 
-class ForgotPasswordModel(private val authRepository: AuthRepository) : ViewModel() {
+class ForgotPasswordViewModel(private val authRepository: AuthRepository) : ViewModel() {
     private val _forgotPasswordFlow: MutableStateFlow<ForgotPasswordResult> = MutableStateFlow(ForgotPasswordResult.Nothing)
     val forgotPasswordFlow = _forgotPasswordFlow.asStateFlow()
 

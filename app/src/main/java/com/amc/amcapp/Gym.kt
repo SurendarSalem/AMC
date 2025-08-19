@@ -1,6 +1,6 @@
 package com.amc.amcapp
 
-import com.google.firebase.database.Exclude
+import com.google.firebase.firestore.Exclude
 import java.sql.Date
 
 data class Gym(
@@ -38,8 +38,8 @@ data class Equipment(
     val gymId: String,
     val name: String,
     val type: String,
-    val imageUrl: String? = null,
-    val description: String? = null,
+    val imageUrl: String = "",
+    val description: String = "",
     val availableComplaints: List<Complaint>,
     @Exclude val addedComplaints: List<Complaint>
 ) {
@@ -48,8 +48,8 @@ data class Equipment(
         gymId = "",
         name = "",
         type = "",
-        imageUrl = null,
-        description = null,
+        imageUrl = "",
+        description = "",
         availableComplaints = emptyList(),
         addedComplaints = emptyList()
     )
@@ -66,8 +66,15 @@ data class Service(
 )
 
 data class Complaint(
-    val id: String, val title: String, val description: String, val price: Double
-)
+    val id: String, var name: String="Surendar", val description: String, val price: Double
+) {
+    constructor() : this(
+        id = "",
+        name = "Surendar",
+        description = "",
+        price = 0.0
+    )
+}
 
 data class Location(
     val latitude: Double, val longitude: Double

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.model.NotifyState
+import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.AuthResult
 import com.amc.amcapp.ui.Screen
 import kotlinx.coroutines.Dispatchers
@@ -34,12 +35,11 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         }
     }
 
-    suspend fun createUser(email: String, password: String) {
+    suspend fun createUser(user: User) {
         withContext(Dispatchers.Main) {
             _authState.value = AuthResult.Loading("Signing in...")
         }
-        delay(5000)
-        authRepository.createUser(email, password).collect { result ->
+        authRepository.createUser(user).collect { result ->
             _authState.value = result
         }
     }

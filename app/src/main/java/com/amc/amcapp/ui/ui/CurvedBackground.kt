@@ -17,7 +17,7 @@ fun CurvedBackground(color: Color, modifier: Modifier) {
         val height = size.height
 
         val path = Path().apply {
-            moveTo(0f, height * 0.7f)
+            moveTo(0f, height * 0.6f)
             quadraticBezierTo(width / 2, height * 1.05f, width, height * 0.7f)
             lineTo(width, 0f)
             lineTo(0f, 0f)

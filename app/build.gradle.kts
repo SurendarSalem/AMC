@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.amc.amcapp"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.amc.amcapp"
@@ -49,13 +49,12 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.google.material)
 
     // firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.database)
-    implementation(libs.firebase.storage.ktx)
-    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth.dep)
+    implementation(libs.firebase.storage.ktx.dep)
+    implementation(libs.firebase.firestore.ktx.dep)
 
     // Koin
     implementation(libs.koin.android)
@@ -63,6 +62,8 @@ dependencies {
     implementation(libs.koin.core)
 
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.material.icons.extended)
+
     //implementation(libs.androidx.navigation.compose.jvmstubs)
 
     // splash
@@ -71,7 +72,10 @@ dependencies {
     // Location
     implementation(libs.play.services.location)
 
+    implementation(libs.coil.compose)
+
     implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.exifinterface)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,18 +1,27 @@
 package com.amc.amcapp.ui.screens
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -26,14 +35,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.amc.amcapp.R
+import com.amc.amcapp.model.User
+import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.AuthResult
+import com.amc.amcapp.ui.EmailField
+import com.amc.amcapp.ui.PasswordField
+import com.amc.amcapp.ui.theme.Dimens
+import com.amc.amcapp.ui.theme.Red
+import com.amc.amcapp.ui.ui.CurvedBackground
 import com.amc.amcapp.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -46,78 +64,126 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel = ko
     var password by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     val loginResult by authViewModel.authState.collectAsState()
-    var selectedRole by remember { mutableStateOf<String?>(null) }
+    var selectedRole by remember { mutableStateOf(UserType.GYM_OWNER) }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        if (loginResult is AuthResult.Loading) {
-            CircularProgressIndicator()
-        }
+        CurvedBackground(
+            color = Red, modifier = Modifier
+                .fillMaxWidth()
+                .align(
+                    Alignment.TopCenter
+                )
+                .height(120.dp)
+        )
 
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Radio group for selecting role
-        Text(
-            "I am a:", modifier = Modifier.align(
-                Alignment.Start
-            ), style = MaterialTheme.typography.bodyLarge.copy(
-                fontSize = 18.sp, fontWeight = FontWeight.Bold
-            )
+        Image(
+            painter = painterResource(id = R.drawable.gym),
+            contentDescription = "A description of my image",
+            modifier = Modifier
+                .size(90.dp)
+                .offset(y = 65.dp)
+                .align(Alignment.TopCenter)
+                .clip(CircleShape)
+                .border(
+                    width = 1.dp, color = Color(0xFF6650a4), // Purple border
+                    shape = CircleShape
+                )
         )
         Column(
-            modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            listOf("Gym Owner", "Technician", "Sales Officer").forEach { role ->
-                Row(
-                    Modifier.clickable { selectedRole = role },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = (selectedRole == role), onClick = { selectedRole = role })
-                    Text(text = role, modifier = Modifier.padding(start = 4.dp))
+            if (loginResult is AuthResult.Loading) {
+                CircularProgressIndicator()
+            }
+            Text(
+                text = "Let's get started!",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(bottom = 8.dp),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Create an account in AMC to explore all features",
+                modifier = Modifier.padding(bottom = 16.dp),
+                color = Color.Gray
+            )
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.People,
+                        contentDescription = "Name Icon",
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            EmailField(
+                text = username,
+                onValueChange = { username = it },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            PasswordField(
+                text = username,
+                onValueChange = { username = it },
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Radio group for selecting role
+            Text(
+                "I am a:", modifier = Modifier.align(
+                    Alignment.Start
+                ), style = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold
+                )
+            )
+            Column(
+                modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                UserType.entries.forEach { role ->
+                    if (role != UserType.ADMIN) {
+                        Row(
+                            Modifier.clickable { selectedRole = role },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (selectedRole == role),
+                                onClick = { selectedRole = role })
+                            Text(text = role.label, modifier = Modifier.padding(start = 4.dp))
+                        }
+                    }
                 }
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                scope.launch {
-                    authViewModel.createUser(username, password)
-                }
-            }, modifier = Modifier.wrapContentWidth()
-        ) {
-            Text("Register", modifier = Modifier.padding(horizontal = 20.dp))
+            Button(
+                onClick = {
+                    scope.launch {
+                        val user = User(
+                            email = username,
+                            password = password,
+                            name = name,
+                            firebaseId = "",
+                            userType = selectedRole
+                        )
+                        authViewModel.createUser(user)
+                    }
+                }, modifier = Modifier.wrapContentWidth()
+            ) {
+                Text(
+                    "Register",
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    fontSize = Dimens.MediumText
+                )
+            }
         }
     }
 }

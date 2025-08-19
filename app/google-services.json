@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "937397757407",
-    "project_id": "app-amc-404b9",
-    "storage_bucket": "app-amc-404b9.firebasestorage.app"
+    "project_number": "66466251838",
+    "project_id": "amc-app-51c71",
+    "storage_bucket": "amc-app-51c71.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:937397757407:android:3c852a96ea90a03203506a",
+        "mobilesdk_app_id": "1:66466251838:android:30f5a0f6024d347483bd6f",
         "android_client_info": {
           "package_name": "com.amc.amcapp"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyApibgciIKOPGHhXOmzFf4Pkm0qblV_muM"
+          "current_key": "AIzaSyAkK_90VqK0hWYQZFKkM5XoLHG3bwA8VoI"
         }
       ],
       "services": {

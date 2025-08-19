@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">AMC</string>
     <string name="title_activity_home">HomeActivity</string>
+    <string name="add_gym">Add Equipment</string>
 </resources>

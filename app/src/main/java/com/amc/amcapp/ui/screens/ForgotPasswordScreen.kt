@@ -2,6 +2,7 @@ package com.amc.amcapp.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,71 +36,79 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.amc.amcapp.ui.AuthResult
-import com.amc.amcapp.viewmodel.ForgotPasswordModel
+import com.amc.amcapp.ui.ui.CurvedBanner
+import com.amc.amcapp.viewmodel.ForgotPasswordViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordScreen(
-    navController: NavController, forgotPasswordModel: ForgotPasswordModel = koinViewModel()
+    navController: NavController, forgotPasswordViewModel: ForgotPasswordViewModel = koinViewModel()
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
-    val loginResult by forgotPasswordModel.forgotPasswordFlow.collectAsState()
+    val loginResult by forgotPasswordViewModel.forgotPasswordFlow.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            forgotPasswordModel.showToast.collect { message ->
+            forgotPasswordViewModel.showToast.collect { message ->
                 code = "123456"
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        if (loginResult is AuthResult.Loading) {
-            CircularProgressIndicator()
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            enabled = (loginResult is AuthResult.Success),
-            value = code,
-            onValueChange = { code = it },
-            label = { Text("Code") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                scope.launch {
-                    forgotPasswordModel.sendPasswordResetEmail(email)
-                }
-            }, modifier = Modifier.wrapContentWidth()
+        CurvedBanner()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
-                forgotPasswordModel.getResetLabel(code),
-                modifier = Modifier.padding(horizontal = 20.dp)
+                text = "Forgot Password?",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(bottom = 16.dp),
+                color = MaterialTheme.colorScheme.onBackground
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                enabled = (loginResult is AuthResult.Success),
+                value = code,
+                onValueChange = { code = it },
+                label = { Text("Code") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        forgotPasswordViewModel.sendPasswordResetEmail(email)
+                    }
+                }, modifier = Modifier.wrapContentWidth()
+            ) {
+                Text(
+                    forgotPasswordViewModel.getResetLabel(code),
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+            }
         }
     }
 }
@@ -108,6 +118,8 @@ fun ForgotPasswordScreen(
 @Composable
 fun ForgotPasswordScreenPreview() {
     val navController = rememberNavController()
-    val forgotPasswordModel: ForgotPasswordModel = koinViewModel()
-    ForgotPasswordScreen(navController = navController, forgotPasswordModel = forgotPasswordModel)
+    val forgotPasswordViewModel: ForgotPasswordViewModel = koinViewModel()
+    ForgotPasswordScreen(
+        navController = navController, forgotPasswordViewModel = forgotPasswordViewModel
+    )
 }
