@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppError
