@@ -2,6 +2,7 @@ package com.amc.amcapp.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HomeRepairService
@@ -26,8 +27,14 @@ enum class DrawerDest(
 
     Sales("settings", "Sales", Icons.Default.Settings),
 
-    Logout("logout", "Logout", Icons.Default.Settings)
+    Logout("logout", "Logout", Icons.Default.Settings),
 
+}
+
+enum class UserDest(
+    val route: String, val label: String, val icon: ImageVector, val badge: String? = null
+) {
+    AddUser("customer/adduser", "Add User", Icons.Default.Add)
 }
 
 enum class BottomDest(val route: String, val label: String, val icon: ImageVector) {

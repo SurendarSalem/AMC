@@ -1,6 +1,7 @@
 package com.amc.amcapp.ui
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,8 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FilePresent
@@ -23,6 +26,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -49,7 +54,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.screens.ServiceScreen
+import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
 import com.amc.amcapp.ui.ui.EqualSizeMenuGridScreen
 import com.amc.amcapp.ui.ui.MenuItem
@@ -77,15 +84,22 @@ fun LandingScreen() {
                 topDestinations.forEach { dest ->
                     NavigationDrawerItem(
                         label = { Text(dest.label) },
-                        selected = currentDestination(navController)?.route == dest.route,
+                        selected = currentDestination(navController)?.route == dest.route || currentDestination(
+                            navController
+                        )?.route?.contains(dest.route + "/") == true,
                         onClick = {
                             scope.launch { drawerState.close() }
-                            navController.navigate(dest.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            try {
+
+                                navController.navigate(dest.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            } catch (e: IllegalArgumentException) {
+
                             }
                         },
                         icon = { Icon(dest.icon, contentDescription = dest.label) },
@@ -128,6 +142,14 @@ fun LandingScreen() {
                     }
                 },
             )
+        }, floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(UserDest.AddUser.route)
+                }, shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+            }
         }) { innerPadding ->
             NavHost(
                 navController = navController,
@@ -136,9 +158,7 @@ fun LandingScreen() {
             ) {
                 val menuItems: List<MenuItem> = listOf(
                     MenuItem(
-                        "pending_complaints",
-                        "Pending Complaints",
-                        Icons.Default.PendingActions
+                        "pending_complaints", "Pending Complaints", Icons.Default.PendingActions
                     ),
                     MenuItem("create_schedule", "Create Schedule", Icons.Default.Schedule),
                     MenuItem("today_amcs", "Today AMCs", Icons.Default.Today),
@@ -156,6 +176,9 @@ fun LandingScreen() {
                     CustomerListScreen(navController)
                 }
 
+                composable(UserDest.AddUser.route) {
+                    AddUserScreen(navController)
+                }
             }
         }
     }
@@ -193,9 +216,10 @@ fun currentDestination(navController: NavHostController): NavDestination? {
 
 private fun titleForDestination(dest: NavDestination?): String {
     val route = dest?.route ?: return "Compose Demo"
-    // Map known routes to titles; fall back to route string
     DrawerDest.entries.firstOrNull { it.route == route }?.let { return it.label }
     BottomDest.entries.firstOrNull { it.route == route }?.let { return it.label }
+    UserDest.entries.firstOrNull { it.route == route }?.let { return it.label }
+
     return when {
         route.startsWith("detail/") -> "Detail"
         else -> route
