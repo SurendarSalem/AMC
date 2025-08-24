@@ -43,7 +43,6 @@ class AuthRepository(private val firebaseAuth: FirebaseAuth) : IAuthRepository {
                         val firebaseUser = firebaseAuth.currentUser
                         firebaseUser?.apply {
                             user.firebaseId = uid
-                            addUserToFirebaseDB(user)
                         }
                         trySend(AuthResult.Success(firebaseUser))
                     } else {
@@ -96,10 +95,6 @@ class AuthRepository(private val firebaseAuth: FirebaseAuth) : IAuthRepository {
 
     override suspend fun signOut() {
         firebaseAuth.signOut()
-    }
-
-    fun addUserToFirebaseDB(user: User) {
-
     }
 }
 

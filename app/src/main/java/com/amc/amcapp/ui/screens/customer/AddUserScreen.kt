@@ -41,18 +41,18 @@ import com.amc.amcapp.ui.AuthResult
 import com.amc.amcapp.ui.EmailField
 import com.amc.amcapp.ui.PasswordField
 import com.amc.amcapp.ui.theme.Dimens
-import com.amc.amcapp.viewmodel.AuthViewModel
+import com.amc.amcapp.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddUserScreen(navController: NavController, authViewModel: AuthViewModel = koinViewModel()) {
+fun AddUserScreen(navController: NavController, loginViewModel: LoginViewModel = koinViewModel()) {
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
-    val loginResult by authViewModel.authState.collectAsState()
+    val loginResult by loginViewModel.authState.collectAsState()
     var selectedRole by remember { mutableStateOf(UserType.GYM_OWNER) }
     val scope = rememberCoroutineScope()
 
@@ -141,7 +141,6 @@ fun AddUserScreen(navController: NavController, authViewModel: AuthViewModel = k
                             firebaseId = "",
                             userType = selectedRole
                         )
-                        authViewModel.createUser(user)
                     }
                 }, modifier = Modifier.wrapContentWidth()
             ) {

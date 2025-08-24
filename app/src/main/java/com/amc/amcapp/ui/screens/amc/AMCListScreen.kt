@@ -23,13 +23,14 @@ import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppError
 import com.amc.amcapp.ui.AppLoadingBar
 import com.amc.amcapp.ui.ui.AMCItem
+import com.amc.amcapp.viewmodel.AMCListViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AMCListScreen(
-    navController: NavHostController, userListViewModel: UserListViewModel = koinViewModel()
+    navController: NavHostController, amcListViewModel: AMCListViewModel = koinViewModel()
 ) {
     Box(
         modifier = Modifier
@@ -37,7 +38,7 @@ fun AMCListScreen(
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(16.dp)
     ) {
-        val userListState by userListViewModel.amcListState.collectAsState()
+        val userListState by amcListViewModel.amcListState.collectAsState()
         when (userListState) {
             is ApiResult.Loading -> {
                 AppLoadingBar(this@Box)

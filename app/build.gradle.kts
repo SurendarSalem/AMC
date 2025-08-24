@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -73,6 +74,8 @@ dependencies {
     implementation(libs.play.services.location)
 
     implementation(libs.coil.compose)
+
+    implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.exifinterface)

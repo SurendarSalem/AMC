@@ -19,14 +19,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,35 +39,56 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.amc.amcapp.R
+import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.AuthResult
 import com.amc.amcapp.ui.EmailField
 import com.amc.amcapp.ui.PasswordField
+import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.Dimens
 import com.amc.amcapp.ui.theme.Red
 import com.amc.amcapp.ui.ui.CurvedBackground
-import com.amc.amcapp.viewmodel.AuthViewModel
+import com.amc.amcapp.util.BubbleProgressBar
+import com.amc.amcapp.viewmodel.SignUpViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel = koinViewModel()) {
+fun SignUpScreen(navController: NavController, signUpViewModel: SignUpViewModel = koinViewModel()) {
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
-    val loginResult by authViewModel.authState.collectAsState()
+    val signUpResult by signUpViewModel.authState.collectAsState()
     var selectedRole by remember { mutableStateOf(UserType.GYM_OWNER) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            signUpViewModel.notifyState.collect { message ->
+                if (message is NotifyState.ShowToast) {
+                    showSnackBar(this, snackBarHostState, message.message)
+                } else if (message is NotifyState.Navigate) {
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -99,9 +122,6 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel = ko
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (loginResult is AuthResult.Loading) {
-                CircularProgressIndicator()
-            }
             Text(
                 text = "Let's get started!",
                 style = MaterialTheme.typography.headlineLarge,
@@ -132,8 +152,8 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel = ko
             )
             Spacer(modifier = Modifier.height(8.dp))
             PasswordField(
-                text = username,
-                onValueChange = { username = it },
+                text = password,
+                onValueChange = { password = it },
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -174,7 +194,7 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel = ko
                             firebaseId = "",
                             userType = selectedRole
                         )
-                        authViewModel.createUser(user)
+                        signUpViewModel.createUser(user)
                     }
                 }, modifier = Modifier.wrapContentWidth()
             ) {
@@ -184,6 +204,24 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel = ko
                     fontSize = Dimens.MediumText
                 )
             }
+        }
+
+        SnackbarHost(
+            hostState = snackBarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
+
+        if (signUpResult is AuthResult.Loading) {
+            BubbleProgressBar(
+                count = 3,
+                dotSize = 8.dp,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.Center),
+                animationDurationMs = 300
+            )
         }
     }
 }

@@ -1,15 +1,16 @@
 package com.amc.amcapp.ui
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilePresent
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PendingActions
@@ -19,7 +20,6 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,7 +36,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -44,30 +46,55 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.amc.amcapp.AppRestarter
+import com.amc.amcapp.MainActivity
+import com.amc.amcapp.data.UserRepository
+import com.amc.amcapp.model.User
+import com.amc.amcapp.ui.screens.ServiceScreen
 import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
+import com.amc.amcapp.ui.theme.Dimens.MediumPadding
 import com.amc.amcapp.ui.ui.EqualSizeMenuGridScreen
 import com.amc.amcapp.ui.ui.MenuItem
+import com.amc.amcapp.ui.ui.SplashActivity
+import com.amc.amcapp.viewmodel.LandingViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+@Composable
+private fun DrawerHeader(user: User?) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(user?.name ?: "Guest", style = MaterialTheme.typography.titleLarge)
+        Text(user?.email ?: "Guest", style = MaterialTheme.typography.bodyMedium)
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 12.dp),
+            thickness = DividerDefaults.Thickness,
+            color = DividerDefaults.color
+        )
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LandingScreen() {
+fun LandingScreen(landingViewModel: LandingViewModel) {
     val navController = rememberNavController()
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
+    val activity = LocalActivity.current
+    val context = LocalContext.current
     val topDestinations = DrawerDest.entries
 
     ModalNavigationDrawer(
         drawerState = drawerState, drawerContent = {
             ModalDrawerSheet {
 
-                DrawerHeader()
+                val user = landingViewModel.user
+                DrawerHeader(user)
+
 
                 topDestinations.forEach { dest ->
                     NavigationDrawerItem(
@@ -106,15 +133,21 @@ fun LandingScreen() {
                         .padding(8.dp)
                         .clickable {
                             scope.launch {
-                                Firebase.auth.signOut()
+                                landingViewModel.logout()
                                 drawerState.close()
+                                activity?.let {
+                                    finishAffinity(it)
+                                }
+                                val intent = Intent(context, MainActivity::class.java)
+                                context.startActivity(intent)
+
                             }
                         }, verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Logout,
                         contentDescription = "Menu",
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(MediumPadding)
                     )
                     Text("Logout")
                 }
@@ -130,14 +163,6 @@ fun LandingScreen() {
                     }
                 },
             )
-        }, floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate(UserDest.AddUser.route)
-                }, shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
         }) { innerPadding ->
             NavHost(
                 navController = navController,
@@ -160,6 +185,11 @@ fun LandingScreen() {
                         })
                 }
 
+                composable(DrawerDest.Services.route) {
+                    ServiceScreen()
+                }
+
+
                 composable(DrawerDest.Customer.route) {
                     CustomerListScreen(navController)
                 }
@@ -169,19 +199,6 @@ fun LandingScreen() {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun DrawerHeader() {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Compose Demo", style = MaterialTheme.typography.titleLarge)
-        Text("Bottom Nav + Drawer", style = MaterialTheme.typography.bodyMedium)
-        HorizontalDivider(
-            modifier = Modifier.padding(top = 12.dp),
-            thickness = DividerDefaults.Thickness,
-            color = DividerDefaults.color
-        )
     }
 }
 

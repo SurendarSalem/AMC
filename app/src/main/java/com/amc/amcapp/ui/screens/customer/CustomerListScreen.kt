@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,6 +27,7 @@ import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppError
 import com.amc.amcapp.ui.AppLoadingBar
+import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.ui.screens.amc.UserItem
 import com.amc.amcapp.ui.screens.amc.UserListViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -66,6 +72,15 @@ fun CustomerListScreen(
                     }
                 }
             }
+        }
+
+        FloatingActionButton(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            onClick = {
+                navController.navigate(UserDest.AddUser.route)
+            }, shape = CircleShape
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add")
         }
     }
 }

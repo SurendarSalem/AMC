@@ -9,6 +9,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.view.WindowCompat
 import com.amc.amcapp.R
 import com.amc.amcapp.ui.theme.AMCTheme
+import com.amc.amcapp.viewmodel.LandingViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 class LandingActivity : ComponentActivity() {
@@ -22,7 +24,8 @@ class LandingActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AMCTheme {
-                LandingScreen()
+                val landingViewModel: LandingViewModel by viewModel()
+                LandingScreen(landingViewModel)
             }
         }
     }

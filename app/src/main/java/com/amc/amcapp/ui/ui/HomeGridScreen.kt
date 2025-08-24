@@ -59,7 +59,7 @@ fun EqualSizeMenuGridScreen(
     items: List<MenuItem>,
     onClick: (MenuItem) -> Unit,
     modifier: Modifier = Modifier,
-    minTileSize: Dp = 180.dp,
+    minTileSize: Dp = 120.dp,
     tileCorner: Dp = 16.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     spacing: Dp = 12.dp
