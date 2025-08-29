@@ -14,6 +14,7 @@ import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.gym.GymRepository
 import com.amc.amcapp.ui.screens.amc.UserListViewModel
 import com.amc.amcapp.viewmodel.AMCListViewModel
+import com.amc.amcapp.viewmodel.AddUserViewModel
 import com.amc.amcapp.viewmodel.LoginViewModel
 import com.amc.amcapp.viewmodel.ForgotPasswordViewModel
 import com.amc.amcapp.viewmodel.LandingViewModel
@@ -62,5 +63,6 @@ val appModule = module {
     viewModel { AMCListViewModel(get()) }
     viewModel { ForgotPasswordViewModel(get()) }
     viewModel { UserListViewModel(get()) }
+    viewModel { AddUserViewModel(get(), get()) }
 
 }

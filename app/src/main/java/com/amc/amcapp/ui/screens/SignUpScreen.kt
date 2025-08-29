@@ -58,7 +58,8 @@ import com.amc.amcapp.ui.PasswordField
 import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.Dimens
 import com.amc.amcapp.ui.theme.Red
-import com.amc.amcapp.ui.ui.CurvedBackground
+import com.amc.amcapp.ui.CurvedBackground
+import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.viewmodel.SignUpViewModel
 import kotlinx.coroutines.launch
@@ -190,6 +191,7 @@ fun SignUpScreen(navController: NavController, signUpViewModel: SignUpViewModel 
                         val user = User(
                             email = username,
                             password = password,
+                            confirmPassword = password,
                             name = name,
                             firebaseId = "",
                             userType = selectedRole
@@ -201,7 +203,7 @@ fun SignUpScreen(navController: NavController, signUpViewModel: SignUpViewModel 
                 Text(
                     "Register",
                     modifier = Modifier.padding(horizontal = 20.dp),
-                    fontSize = Dimens.MediumText
+                    fontSize = LocalDimens.current.textMedium.sp,
                 )
             }
         }

@@ -1,4 +1,4 @@
-package com.amc.amcapp.ui.ui
+package com.amc.amcapp.ui
 
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.layout.fillMaxWidth

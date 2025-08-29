@@ -61,7 +61,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddUserScreen(
+fun UserDetailsScreen(
     navController: NavController, addUserViewModel: AddUserViewModel = koinViewModel()
 ) {
 

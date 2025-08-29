@@ -1,7 +1,6 @@
-package com.amc.amcapp.ui.ui
+package com.amc.amcapp.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -39,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -48,6 +45,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.amc.amcapp.R
+import com.amc.amcapp.ui.theme.LocalDimens
 
 data class MenuItem(
     val id: String, val label: String, val icon: ImageVector
@@ -59,7 +57,7 @@ fun EqualSizeMenuGridScreen(
     items: List<MenuItem>,
     onClick: (MenuItem) -> Unit,
     modifier: Modifier = Modifier,
-    minTileSize: Dp = 120.dp,
+    minTileSize: Dp = LocalDimens.current.tileSize.dp,
     tileCorner: Dp = 16.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     spacing: Dp = 12.dp

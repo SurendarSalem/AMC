@@ -20,6 +20,7 @@ navigationCompose = "2.9.3"
 navigationComposeJvmstubs = "2.9.3"
 playServicesLocation = "21.3.0"
 exifinterface = "1.3.6"
+roomKtx = "2.7.2"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -57,6 +58,7 @@ firebase-database-dep = { group = "com.google.firebase", name = "firebase-databa
 firebase-storage-ktx-dep = { group = "com.google.firebase", name = "firebase-storage", version = "22.0.0" }
 firebase-firestore-ktx-dep ={ group = "com.google.firebase", name = "firebase-firestore", version = "26.0.0" }
 androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

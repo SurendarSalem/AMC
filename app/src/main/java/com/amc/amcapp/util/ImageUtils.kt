@@ -8,6 +8,8 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -52,9 +54,10 @@ object ImageUtils {
         return bitmap.scale(width, height)
     }
 
-    fun bitmapToByteArray(bitmap: Bitmap, quality: Int = 90): ByteArray {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
-        return stream.toByteArray()
-    }
+    suspend fun bitmapToByteArray(bitmap: Bitmap, quality: Int = 90): ByteArray =
+        withContext(Dispatchers.IO) {
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+            return@withContext stream.toByteArray()
+        }
 }

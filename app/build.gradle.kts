@@ -79,6 +79,7 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

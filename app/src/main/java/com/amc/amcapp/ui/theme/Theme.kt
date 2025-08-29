@@ -5,7 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFFD32F2F),
@@ -67,9 +69,21 @@ fun AMCTheme(
 ) {
     val colors = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    MaterialTheme(
-        colorScheme = colors,
-        typography = Typography,        // you can define your Shapes.kt
-        content = content
-    )
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+
+    val dimens = when {
+        screenWidth < 400 -> VerySmallDimens
+        screenWidth < 600 -> SmallDimens   // Phone
+        screenWidth < 840 -> MediumDimens  // Tablet
+        else -> LargeDimens                // Desktop / Large tablet
+    }
+
+    CompositionLocalProvider(LocalDimens provides dimens) {
+        MaterialTheme(
+            colorScheme = colors,
+            typography = Typography,        // you can define your Shapes.kt
+            content = content
+        )
+    }
 }

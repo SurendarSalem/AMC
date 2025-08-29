@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -44,7 +45,8 @@ import com.amc.amcapp.ui.PasswordField
 import com.amc.amcapp.ui.Screen
 import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.Dimens
-import com.amc.amcapp.ui.ui.CurvedBanner
+import com.amc.amcapp.ui.CurvedBanner
+import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
@@ -116,7 +118,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                 Text(
                     "Please enter valid email id and password",
                     color = MaterialTheme.colorScheme.error,
-                    fontSize = Dimens.MediumText,
+                    fontSize = LocalDimens.current.textMedium.sp,
                     modifier = Modifier
                         .align(Alignment.Start)
                         .padding(horizontal = 4.dp)
@@ -134,7 +136,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                         if (loginResult !is AuthResult.Loading) {
                             navController.navigate(Screen.ForgotPassword.route)
                         }
-                    }, fontSize = Dimens.MediumText
+                    }, fontSize = LocalDimens.current.textMedium.sp,
                 )
 
                 Button(
@@ -152,7 +154,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                     Text(
                         "Login",
                         modifier = Modifier.padding(horizontal = 18.dp),
-                        fontSize = Dimens.MediumText
+                        fontSize = LocalDimens.current.textMedium.sp,
                     )
                 }
             }
@@ -160,7 +162,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
             Text(
                 "Don't have an account? Sign up",
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontSize = Dimens.MediumText,
+                fontSize = LocalDimens.current.textMedium.sp,
                 modifier = Modifier
                     .wrapContentWidth()
                     .clickable {

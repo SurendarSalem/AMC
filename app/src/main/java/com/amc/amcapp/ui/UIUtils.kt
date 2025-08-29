@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,6 +56,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.amc.amcapp.R
 import com.amc.amcapp.ui.theme.Dimens
+import com.amc.amcapp.ui.theme.LocalDimens
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -187,11 +189,27 @@ fun AppError(errorMessage: String) {
     }
 }
 
-fun showSnackBar(scope: CoroutineScope, snackBarHostState: SnackbarHostState, message: String) {
+fun showSnackBar(
+    scope: CoroutineScope,
+    snackBarHostState: SnackbarHostState,
+    message: String,
+    actionLabel: String? = null,
+    onActionClicked: () -> Unit = {}
+) {
     scope.launch {
         snackBarHostState.showSnackbar(
-            message = message, duration = SnackbarDuration.Short
-        )
+            message = message, duration = SnackbarDuration.Long, actionLabel = actionLabel
+        ).let { result ->
+            when (result) {
+                SnackbarResult.ActionPerformed -> {
+                    onActionClicked()
+                }
+
+                SnackbarResult.Dismissed -> {
+
+                }
+            }
+        }
     }
 }
 
@@ -202,7 +220,7 @@ fun EmailField(text: String, onValueChange: (String) -> Unit) {
         onValueChange = onValueChange,
         label = { Text("Email") },
         textStyle = TextStyle(
-            fontSize = Dimens.MediumText
+            fontSize = LocalDimens.current.textMedium.sp
         ),
         leadingIcon = {
             Icon(
@@ -214,14 +232,14 @@ fun EmailField(text: String, onValueChange: (String) -> Unit) {
 }
 
 @Composable
-fun PasswordField(text: String, onValueChange: (String) -> Unit) {
+fun PasswordField(label: String = "Password", text: String, onValueChange: (String) -> Unit) {
     val hideIcon = remember { mutableStateOf(true) }
     OutlinedTextField(
         value = text,
         onValueChange = onValueChange,
-        label = { Text("Password") },
+        label = { Text(label) },
         textStyle = TextStyle(
-            fontSize = Dimens.MediumText
+            fontSize = LocalDimens.current.textMedium.sp
         ),
         leadingIcon = {
             Icon(

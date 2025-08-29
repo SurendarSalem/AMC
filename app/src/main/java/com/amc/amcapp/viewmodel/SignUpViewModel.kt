@@ -9,12 +9,10 @@ import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.AuthResult
 import com.amc.amcapp.ui.Screen
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
 
 class SignUpViewModel(
     private val authRepository: AuthRepository,
@@ -32,7 +30,7 @@ class SignUpViewModel(
 
     suspend fun createUser(user: User) {
         _authState.value = AuthResult.Loading("Signing in...")
-        authRepository.createUser(user).collect { result ->
+        authRepository.createUserInFirebase(user).collect { result ->
             _authState.value = result
             if (result is AuthResult.Success) {
                 userRepository.addUserToFirebase(user)

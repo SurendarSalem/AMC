@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,7 +35,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.amc.amcapp.ui.AuthResult
-import com.amc.amcapp.ui.ui.CurvedBanner
+import com.amc.amcapp.ui.CurvedBanner
 import com.amc.amcapp.viewmodel.ForgotPasswordViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel

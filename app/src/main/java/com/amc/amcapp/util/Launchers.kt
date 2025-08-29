@@ -1,8 +1,10 @@
 package com.amc.amcapp.util
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,7 +33,7 @@ fun cameraLauncher(
         if (success && cameraImagePath != null) {
             val file = File(cameraImagePath)
             val fixedBitmap = loadBitmapFromFile(file)
-            val resizedBitmap = resizeBitmap(fixedBitmap, 300, 300)
+            val resizedBitmap = resizeBitmap(fixedBitmap, 600, 600)
             onImageCaptured(resizedBitmap)
             file.delete()
         }
@@ -53,6 +55,15 @@ fun galleryLauncher(
             onImageSelected(resizedBitmap)
         }
     }
+}
+
+fun openAppSettings(context: Context) {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null)
+    )
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
 }
 
 

@@ -1,4 +1,4 @@
-package com.amc.amcapp.ui.ui
+package com.amc.amcapp.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable

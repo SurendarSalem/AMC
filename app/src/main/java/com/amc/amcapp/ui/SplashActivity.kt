@@ -1,4 +1,4 @@
-package com.amc.amcapp.ui.ui
+package com.amc.amcapp.ui
 
 import android.content.Intent
 import android.os.Bundle

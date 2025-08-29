@@ -1,6 +1,5 @@
 package com.amc.amcapp.ui
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.LocalActivity
@@ -46,23 +45,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.amc.amcapp.AppRestarter
 import com.amc.amcapp.MainActivity
-import com.amc.amcapp.data.UserRepository
 import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.screens.ServiceScreen
 import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
-import com.amc.amcapp.ui.theme.Dimens.MediumPadding
-import com.amc.amcapp.ui.ui.EqualSizeMenuGridScreen
-import com.amc.amcapp.ui.ui.MenuItem
-import com.amc.amcapp.ui.ui.SplashActivity
 import com.amc.amcapp.viewmodel.LandingViewModel
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.amc.amcapp.ui.theme.LocalDimens
 
 @Composable
 private fun DrawerHeader(user: User?) {
@@ -147,7 +137,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                     Icon(
                         Icons.AutoMirrored.Filled.Logout,
                         contentDescription = "Menu",
-                        modifier = Modifier.padding(MediumPadding)
+                        modifier = Modifier.padding(LocalDimens.current.spacingMedium.dp)
                     )
                     Text("Logout")
                 }
@@ -194,6 +184,9 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                     CustomerListScreen(navController)
                 }
 
+                composable(UserDest.AddUser.route) {
+                    AddUserScreen(navController)
+                }
                 composable(UserDest.AddUser.route) {
                     AddUserScreen(navController)
                 }

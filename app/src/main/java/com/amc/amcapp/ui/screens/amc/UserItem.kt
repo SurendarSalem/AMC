@@ -2,6 +2,7 @@ package com.amc.amcapp.ui.screens.amc
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,11 +25,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.RoundedTextGradient
+import com.amc.amcapp.ui.theme.LocalDimens
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -42,6 +46,7 @@ fun UserItem(
             .fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, Color.LightGray),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         )) {
@@ -49,7 +54,7 @@ fun UserItem(
         Box(modifier = Modifier.fillMaxWidth()) {
             Icon(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(LocalDimens.current.spacingLarge.dp)
                     .align(Alignment.TopEnd),
                 imageVector =
                     when (user.userType) {
@@ -63,22 +68,24 @@ fun UserItem(
                 tint = MaterialTheme.colorScheme.secondary
             )
             Row(
-                modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(LocalDimens.current.spacingLarge.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 RoundedTextGradient(user.name.toCharArray()[0].toString())
 
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(LocalDimens.current.spacingMedium.dp))
 
                 Column {
 
                     Text(
                         text = user.name,
-                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = LocalDimens.current.textLarge.sp,
                         overflow = TextOverflow.Ellipsis
                     )
 
                     Text(
-                        text = user.userType.label
+                        text = user.userType.label,
+                        fontSize = LocalDimens.current.textMedium.sp,
                     )
                 }
 

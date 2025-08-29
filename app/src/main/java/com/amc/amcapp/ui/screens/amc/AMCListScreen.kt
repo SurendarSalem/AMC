@@ -22,7 +22,7 @@ import com.amc.amcapp.model.AMC
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppError
 import com.amc.amcapp.ui.AppLoadingBar
-import com.amc.amcapp.ui.ui.AMCItem
+import com.amc.amcapp.ui.AMCItem
 import com.amc.amcapp.viewmodel.AMCListViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -67,6 +67,8 @@ fun AMCListScreen(
                     }
                 }
             }
+
+            ApiResult.Empty -> TODO()
         }
     }
 }

@@ -22,8 +22,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AMC">   <!-- ✅ Normal theme -->
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.amc.amcapp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+
         <activity
-            android:name=".ui.ui.SplashActivity"
+            android:name=".ui.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.App.Starting"> <!-- ✅ Splash theme only here -->
             <intent-filter>
