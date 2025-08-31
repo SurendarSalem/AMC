@@ -9,33 +9,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -46,13 +32,14 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.amc.amcapp.Equipment
+import com.amc.amcapp.EquipmentType
+import com.amc.amcapp.equipments.AddEquipmentState
 import com.amc.amcapp.equipments.AddEquipmentViewModel
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.AnimatedSectionCard
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppTextField
-import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.AppImagePicker
 import com.amc.amcapp.util.BubbleProgressBar
@@ -98,23 +85,25 @@ fun AddEquipmentScreen(
         }
     }
 
-    // Collect notifications
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             addEquipmentViewModel.notifyState.collectLatest { message ->
                 when (message) {
                     is NotifyState.ShowToast -> {
-                        showSnackBar(scope, snackBarHostState, message.message)
+                        scope.launch {
+                            snackBarHostState.showSnackbar(
+                                message = message.message, actionLabel = "OK"
+                            )
+                        }
                     }
 
-                    is NotifyState.Navigate -> {
-                    }
-
-                    NotifyState.LaunchActivity -> navController.popBackStack()
+                    is NotifyState.LaunchActivity -> navController.popBackStack()
+                    else -> {}
                 }
             }
         }
     }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -123,23 +112,22 @@ fun AddEquipmentScreen(
                 .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Animated header
             Box(modifier = Modifier.fillMaxWidth()) {
                 AnimatedContent(
                     modifier = Modifier.align(Alignment.TopCenter),
-                    targetState = isEditEnabled.value, transitionSpec = {
-                        fadeIn(tween(300)) + slideInVertically { it } togetherWith fadeOut(
-                            tween(
-                                300
-                            )
-                        ) + slideOutVertically { -it }
-                    }, label = "HeaderTransition"
+                    targetState = isEditEnabled.value,
+                    transitionSpec = {
+                        fadeIn(tween(300)) + slideInVertically { it } togetherWith fadeOut(tween(300)) + slideOutVertically { -it }
+                    },
+                    label = "HeaderTransition"
                 ) { editable ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = if (editable) {
                                 if (equipment == null) "Create Equipment" else "Edit Equipment"
                             } else "Equipment Details",
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
                             text = if (editable) {
@@ -154,22 +142,25 @@ fun AddEquipmentScreen(
 
             Spacer(Modifier.height(20.dp))
 
+            // Image picker
             AppImagePicker(
                 imageUrl = equipmentState.imageUrl,
                 onImageReturned = addEquipmentViewModel::onBitmapChanged,
                 onErrorReturned = { error ->
-                    showSnackBar(
-                        scope,
-                        snackBarHostState,
-                        if (error is NotifyState.ShowToast) error.message else "OK",
-                        actionLabel = "Open Settings"
-                    ) { openAppSettings(context) }
+                    scope.launch {
+                        snackBarHostState.showSnackbar(
+                            message = if (error is NotifyState.ShowToast) error.message else "Error",
+                            actionLabel = "Open Settings"
+                        )
+                    }
+                    openAppSettings(context)
                 },
                 isEditEnabled = isEditEnabled.value
             )
 
             Spacer(Modifier.height(20.dp))
 
+            // Equipment info
             AnimatedSectionCard("Equipment Info", Icons.Default.Person, true) {
                 AppTextField(
                     value = equipmentState.name,
@@ -177,18 +168,23 @@ fun AddEquipmentScreen(
                     label = "Equipment Name",
                     enabled = isEditEnabled.value
                 )
-
                 Spacer(Modifier.height(12.dp))
 
+                EquipmentTypeSelection(
+                    equipmentState, addEquipmentViewModel, isEditEnabled.value
+                )
                 AppTextField(
                     value = equipmentState.description,
                     onValueChange = addEquipmentViewModel::onDescriptionChanged,
-                    label = "Address",
+                    label = "Description",
                     minLines = 3,
                     enabled = isEditEnabled.value
                 )
             }
 
+            Spacer(Modifier.height(20.dp))
+
+            // Save button
             Button(
                 onClick = { scope.launch { addEquipmentViewModel.addEquipmentToFirebase() } },
                 enabled = isEditEnabled.value,
@@ -205,12 +201,58 @@ fun AddEquipmentScreen(
             }
         }
 
+        // Loading indicator
         if (addEquipmentState is ApiResult.Loading) {
             BubbleProgressBar(
                 modifier = Modifier
                     .padding(16.dp)
                     .align(Alignment.Center)
             )
+        }
+
+        // SnackbarHost for showing messages
+        SnackbarHost(
+            hostState = snackBarHostState, modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+fun EquipmentTypeSelection(
+    addEquipmentState: AddEquipmentState, viewModel: AddEquipmentViewModel, isEditEnabled: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(if (isEditEnabled) 1f else 0.6f) // dim when read-only
+    ) {
+        Text(
+            "Equipment Type:",
+            modifier = Modifier.padding(bottom = 8.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontSize = 18.sp, fontWeight = FontWeight.Bold
+            )
+        )
+
+        EquipmentType.entries.forEach { equipmentType ->
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = isEditEnabled) {
+                    viewModel.onEquipmentTypeChanged(
+                        equipmentType
+                    )
+                }
+                .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = (addEquipmentState.equipmentType == equipmentType),
+                    onClick = { viewModel.onEquipmentTypeChanged(equipmentType) },
+                    enabled = isEditEnabled
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = equipmentType.label, style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }

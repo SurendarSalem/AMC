@@ -95,22 +95,26 @@ fun UserItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                user.userType?.let {
+                    RoleBadge(it)
+                }
 
-                RoleBadge(user.userType)
             }
 
-            // Role icon
-            Icon(
-                imageVector = when (user.userType) {
-                    UserType.CUSTOMER -> Icons.Default.Person
-                    UserType.TECHNICIAN -> Icons.Default.HomeRepairService
-                    UserType.ADMIN -> Icons.Default.Person
-                    UserType.GYM_OWNER -> Icons.Default.SportsGymnastics
-                    UserType.SALES_PERSON -> Icons.Default.Money
-                },
-                contentDescription = user.userType.label,
-                tint = MaterialTheme.colorScheme.primary
-            )
+            user.userType?.let {
+                Icon(
+                    imageVector = when (it) {
+                        UserType.CUSTOMER -> Icons.Default.Person
+                        UserType.TECHNICIAN -> Icons.Default.HomeRepairService
+                        UserType.ADMIN -> Icons.Default.Person
+                        UserType.GYM_OWNER -> Icons.Default.SportsGymnastics
+                        UserType.SALES_PERSON -> Icons.Default.Money
+                    },
+                    contentDescription = it.label,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
         }
     }
 }

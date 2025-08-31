@@ -33,7 +33,7 @@ fun ServiceScreen() {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Main content
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -48,7 +48,7 @@ fun ServiceScreen() {
             }
         }
 
-        // Bottom navigation bar (no insets, no extra space)
+
         BottomBar(navController, bottomItems)
     }
 }

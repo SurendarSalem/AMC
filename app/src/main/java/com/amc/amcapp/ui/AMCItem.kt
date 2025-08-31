@@ -39,7 +39,7 @@ import java.util.Locale
 @Composable
 fun AMCItem(
     item: AMC,
-    onClick: (() -> Unit)? = null,
+    onClick: () -> Unit
 ) {
     val dateText = remember(item.updatedAt) {
         val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy").withLocale(Locale.getDefault())
@@ -50,7 +50,7 @@ fun AMCItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onClick
+                onClick()
             }
             .semantics {
                 contentDescription =

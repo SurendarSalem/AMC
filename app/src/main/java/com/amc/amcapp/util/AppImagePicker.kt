@@ -39,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.amc.amcapp.R
 import com.amc.amcapp.model.Actions
@@ -64,7 +65,7 @@ fun AppImagePicker(
         if (imageUrl.isNotEmpty()) {
             scope.launch {
                 previewBitmap = loadBitmapFromUrl(context, imageUrl)
-                onImageReturned(previewBitmap)
+                onImageReturned.invoke(previewBitmap)
             }
         }
 
@@ -88,13 +89,13 @@ fun AppImagePicker(
 
     val cameraLauncher = cameraLauncher(cameraImagePath) { bitmap ->
         previewBitmap = bitmap
-        onImageReturned(previewBitmap)
+        onImageReturned.invoke(previewBitmap)
         cameraImagePath = null
     }
 
     val galleryLauncher = galleryLauncher(context) { bitmap ->
         previewBitmap = bitmap
-        onImageReturned(previewBitmap)
+        onImageReturned.invoke(previewBitmap)
     }
 
 
@@ -141,8 +142,10 @@ fun AppImagePicker(
         } else {
             // Fallback: load from URL if provided
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true)
-                    .build(),
+                model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
+                    .memoryCachePolicy(CachePolicy.ENABLED) // enable memory cache
+                    .diskCachePolicy(CachePolicy.ENABLED)   // enable disk cache
+                    .crossfade(true).build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 error = painterResource(id = R.drawable.error_placeholder),
@@ -205,6 +208,7 @@ fun AppImagePicker(
                             .padding(8.dp)
                             .clickable {
                                 previewBitmap = null
+                                onImageReturned.invoke(previewBitmap)
                             },
                         tint = Color.White,
                     )

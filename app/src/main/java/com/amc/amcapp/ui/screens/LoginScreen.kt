@@ -3,31 +3,10 @@ package com.amc.amcapp.ui.screens
 import android.app.Activity
 import android.content.Intent
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,17 +17,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.amc.amcapp.model.NotifyState
-import com.amc.amcapp.ui.AuthResult
-import com.amc.amcapp.ui.EmailField
-import com.amc.amcapp.ui.LandingActivity
-import com.amc.amcapp.ui.PasswordField
-import com.amc.amcapp.ui.Screen
-import com.amc.amcapp.ui.showSnackBar
-import com.amc.amcapp.ui.theme.Dimens
-import com.amc.amcapp.ui.CurvedBanner
+import com.amc.amcapp.ui.*
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.viewmodel.LoginViewModel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -57,33 +30,38 @@ import org.koin.androidx.compose.koinViewModel
 fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = koinViewModel()) {
 
     var username by rememberSaveable { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+
     val loginResult by loginViewModel.authState.collectAsState()
+    val errorMessage by loginViewModel.errorMessage.collectAsState()
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
-    var isButtonClicked by remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
-
 
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            loginViewModel.notifyState.collect { message ->
-                if (message is NotifyState.ShowToast) {
-                    showSnackBar(this, snackBarHostState, message.message)
-                } else if (message is NotifyState.Navigate) {
+            loginViewModel.notifyState.collectLatest { message ->
+                when (message) {
+                    is NotifyState.ShowToast -> {
+                        scope.launch { snackBarHostState.showSnackbar(message.message) }
+                    }
 
-                } else if (message is NotifyState.LaunchActivity) {
-                    val intent = Intent(context, LandingActivity::class.java)
-                    context.startActivity(intent)
-                    (context as Activity).finish()
+                    is NotifyState.LaunchActivity -> {
+                        val intent = Intent(context, LandingActivity::class.java)
+                        context.startActivity(intent)
+                        (context as Activity).finish()
+                    }
+
+                    else -> { /* Handle other NotifyStates if needed */
+                    }
                 }
             }
         }
     }
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+
+    Box(modifier = Modifier.fillMaxSize()) {
         CurvedBanner()
         Column(
             modifier = Modifier
@@ -99,24 +77,32 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                 modifier = Modifier.padding(bottom = 8.dp),
                 color = MaterialTheme.colorScheme.onBackground
             )
+
             Text(
                 text = "Login into your existing account of AMC",
                 modifier = Modifier.padding(bottom = 16.dp),
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
+
             EmailField(
                 text = username,
                 onValueChange = { username = it },
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             PasswordField(
                 text = password,
                 onValueChange = { password = it },
             )
+
             Spacer(modifier = Modifier.height(8.dp))
-            if (isButtonClicked && !loginViewModel.isValidUser(username, password)) {
+
+            // Reactive validation error
+            val isValidUser = loginViewModel.isValidUser(username, password)
+            if (!isValidUser) {
                 Text(
-                    "Please enter valid email id and password",
+                    text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     fontSize = LocalDimens.current.textMedium.sp,
                     modifier = Modifier
@@ -124,6 +110,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                         .padding(horizontal = 4.dp)
                 )
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
@@ -132,24 +119,28 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Forgot Password?", modifier = Modifier.clickable {
+                    text = "Forgot Password?",
+                    modifier = Modifier.clickable {
                         if (loginResult !is AuthResult.Loading) {
                             navController.navigate(Screen.ForgotPassword.route)
                         }
-                    }, fontSize = LocalDimens.current.textMedium.sp,
+                    },
+                    fontSize = LocalDimens.current.textMedium.sp,
                 )
 
                 Button(
                     onClick = {
-                        isButtonClicked = true
                         scope.launch {
-                            if (loginViewModel.isValidUser(username, password)) {
+                            if (isValidUser) {
                                 loginViewModel.signIn(username, password)
+                            } else {
+                                // Optionally show a quick validation snackbar
+                                snackBarHostState.showSnackbar("Please enter valid credentials")
                             }
                         }
                     },
                     modifier = Modifier.wrapContentWidth(),
-                    enabled = (loginResult !is AuthResult.Loading)
+                    enabled = loginResult !is AuthResult.Loading
                 ) {
                     Text(
                         "Login",
@@ -158,20 +149,11 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
-            /*Text(
-                "Don't have an account? Sign up",
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontSize = LocalDimens.current.textMedium.sp,
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .clickable {
-                        if (loginResult !is AuthResult.Loading) {
-                            navController.navigate(Screen.SignUpScreen.route)
-                        }
-                    })*/
         }
 
+        // Snackbar
         SnackbarHost(
             hostState = snackBarHostState,
             modifier = Modifier
@@ -181,12 +163,9 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
 
         if (loginResult is AuthResult.Loading) {
             BubbleProgressBar(
-                count = 3,
-                dotSize = 8.dp,
                 modifier = Modifier
                     .padding(16.dp)
-                    .align(Alignment.Center),
-                animationDurationMs = 300
+                    .align(Alignment.Center)
             )
         }
     }

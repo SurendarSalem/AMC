@@ -2,6 +2,7 @@ package com.amc.amcapp.ui.screens.customer
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +53,7 @@ fun AddUserScreen(
     val scrollState = rememberScrollState()
     val isEditEnabled = remember { mutableStateOf(user == null) }
     val context = LocalContext.current
+    val errorMessage by addUserViewModel.errorMessage.collectAsState()
 
     // Setup menu toggle
     fun updateMenu() {
@@ -89,25 +91,35 @@ fun AddUserScreen(
             }
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(LocalDimens.current.spacingMedium.dp)
+    ) {
 
+        TopErrorBanner(
+            errorMessage = if (!addUserViewModel.isValidUser(user != null)) errorMessage else null,
+            fontSize = 18f
+        )
         Column(
             modifier = Modifier
-                .padding(16.dp)
-                .verticalScroll(scrollState)
-                .padding(top = 16.dp),
+                .padding(top = 72.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(20.dp))
             Box(modifier = Modifier.fillMaxWidth()) {
                 AnimatedContent(
                     modifier = Modifier.align(Alignment.TopCenter),
-                    targetState = isEditEnabled.value, transitionSpec = {
+                    targetState = isEditEnabled.value,
+                    transitionSpec = {
                         fadeIn(tween(300)) + slideInVertically { it } togetherWith fadeOut(
                             tween(
                                 300
                             )
                         ) + slideOutVertically { -it }
-                    }, label = "HeaderTransition"
+                    },
+                    label = "HeaderTransition"
                 ) { editable ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
@@ -126,24 +138,22 @@ fun AddUserScreen(
                     }
                 }
                 if (user != null && user.userType == UserType.GYM_OWNER) {
-                    Button(
-                        modifier = Modifier.align(Alignment.TopEnd),
-                        onClick = {
-                            navController.currentBackStackEntry?.savedStateHandle?.apply {
-                                set("user", user as User)
-                            }
-                            navController.navigate(UserDest.Equipments.route) {
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        shape = RoundedCornerShape(50),
-                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = "Equipments", style = MaterialTheme.typography.labelLarge
-                        )
-                    }
+                    Text(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .clickable {
+                                navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("user", user)
+                                }
+                                navController.navigate(UserDest.Equipments.route) {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                        text = "Equipments",
+                        fontSize = LocalDimens.current.textLarge.sp
+                    )
                 }
 
             }

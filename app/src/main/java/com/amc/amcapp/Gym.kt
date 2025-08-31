@@ -37,8 +37,7 @@ data class Equipment(
     val id: String,
     val gymId: String,
     val name: String,
-    val type: String,
-    val imageUrl: String = "",
+    var imageUrl: String = "",
     val description: String = "",
     val equipmentType: EquipmentType?,
     val addedComplaints: List<Complaint> = emptyList()
@@ -47,7 +46,6 @@ data class Equipment(
         id = "",
         gymId = "",
         name = "",
-        type = "",
         imageUrl = "",
         description = "",
         equipmentType = null,
@@ -55,7 +53,7 @@ data class Equipment(
     )
 }
 
-enum class EquipmentType(label: String) {
+enum class EquipmentType(val label: String) {
     CARDIO("Cardio"), CHEST("Chest"), DUMBBELL("Dumbbell")
 }
 

@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.amc.amcapp.R
 
@@ -42,7 +43,8 @@ fun Avatar(
     } else {
         // Coil AsyncImage for network avatar
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(imageUrl).error(R.drawable.gym)
+            model = ImageRequest.Builder(LocalContext.current).diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED).data(imageUrl).error(R.drawable.gym)
                 .crossfade(true).build(),
             contentDescription = name,
             placeholder = painterResource(R.drawable.gym),

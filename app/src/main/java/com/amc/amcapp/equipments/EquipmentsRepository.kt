@@ -45,12 +45,7 @@ class EquipmentsRepository(database: FirebaseFirestore = Firebase.firestore) :
             gymRef.whereEqualTo("gymId", gymId).get().addOnSuccessListener { querySnapshot ->
                 val equipments =
                     querySnapshot.documents.mapNotNull { it.toObject(Equipment::class.java) }
-             /*   trySend(ApiResult.Success(equipments))*/
-                trySend(
-                    ApiResult.Success(
-                        emptyList()
-                    )
-                )
+                trySend(ApiResult.Success(equipments))
             }.addOnFailureListener { exception ->
                 trySend(ApiResult.Error(exception.message ?: "Unknown error"))
             }

@@ -11,7 +11,7 @@ open class User(
     open var password: String = "",
     open var confirmPassword: String = "",
     open var name: String = "",
-    open var userType: UserType = UserType.CUSTOMER,
+    open var userType: UserType? = null,
     open var imageUrl: String = "",
     open var phoneNumber: String = "",
     open var address: String = ""

@@ -59,7 +59,7 @@ fun AMCListScreen(
                     ) {
                         items(users) { item ->
                             AMCItem(item = item, onClick = {
-                                navController.navigate("detail/${item.id}")
+                                //navController.navigate("detail/${item.id}")
                             })
                             Spacer(modifier = Modifier.padding(4.dp))
                         }

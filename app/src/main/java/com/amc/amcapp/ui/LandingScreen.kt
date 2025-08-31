@@ -57,19 +57,26 @@ import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
 import com.amc.amcapp.ui.screens.gym.equipment.AddEquipmentScreen
 import com.amc.amcapp.ui.theme.LocalDimens
+import com.amc.amcapp.util.Avatar
 import com.amc.amcapp.viewmodel.LandingViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 private fun DrawerHeader(user: User?) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(user?.name ?: "Guest", style = MaterialTheme.typography.titleLarge)
-        Text(user?.email ?: "Guest", style = MaterialTheme.typography.bodyMedium)
-        HorizontalDivider(
-            modifier = Modifier.padding(top = 12.dp),
-            thickness = DividerDefaults.Thickness,
-            color = DividerDefaults.color
-        )
+    Row(modifier = Modifier.padding(16.dp)) {
+        user?.let {
+            Avatar(it.imageUrl, it.name)
+        }
+        Column(modifier = Modifier.padding(start = LocalDimens.current.spacingMedium.dp)) {
+            Text(user?.name ?: "Guest", style = MaterialTheme.typography.titleLarge)
+            Text(user?.email ?: "Guest", style = MaterialTheme.typography.bodyMedium)
+            HorizontalDivider(
+                modifier = Modifier.padding(top = 12.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
+        }
+
     }
 }
 
@@ -198,6 +205,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                             navController = navController, user = it
                         )
                     }
+                    menuEnabled = false
                 }
 
                 composable(GymDest.AddEquipment.route) {
@@ -246,6 +254,7 @@ private fun titleForDestination(dest: NavDestination?): String {
     DrawerDest.entries.firstOrNull { it.route == route }?.let { return it.label }
     BottomDest.entries.firstOrNull { it.route == route }?.let { return it.label }
     UserDest.entries.firstOrNull { it.route == route }?.let { return it.label }
+    GymDest.entries.firstOrNull { it.route == route }?.let { return it.label }
 
     return when {
         route.startsWith("detail/") -> "Detail"

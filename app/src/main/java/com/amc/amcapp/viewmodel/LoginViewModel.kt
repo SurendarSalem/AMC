@@ -1,6 +1,7 @@
 package com.amc.amcapp.viewmodel
 
 import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.data.IUserRepository
@@ -29,6 +30,8 @@ class LoginViewModel(
 
     var notifyState = MutableSharedFlow<NotifyState>()
 
+    val errorMessage = MutableStateFlow("")
+
     suspend fun signIn(email: String, password: String) {
         _authState.value = AuthResult.Loading("Signing in...")
         authRepository.signIn(email, password).collect { result ->
@@ -52,7 +55,20 @@ class LoginViewModel(
     }
 
     fun isValidUser(username: String, password: String): Boolean {
-        return username.isNotEmpty() && username.length > 4 && password.isNotEmpty() && password.length >= 8
+        if (username.isEmpty()) {
+            errorMessage.value = "Email should not be empty"
+            return false
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(username).matches()) {
+            errorMessage.value = "Please enter a valid email id"
+            return false
+        }
+        if (password.length < 8) {
+            errorMessage.value = "Password should be more than 7 characters"
+            return false
+        }
+        errorMessage.value = ""
+        return true
     }
 
     override fun onCleared() {

@@ -14,11 +14,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
@@ -41,7 +43,6 @@ fun AddEquipmentState.toEquipment(): Equipment {
         id = id,
         gymId = gymId,
         name = name,
-        type = type,
         imageUrl = imageUrl,
         description = description,
         equipmentType = equipmentType,
@@ -72,28 +73,34 @@ class AddEquipmentViewModel(
             ref.downloadUrl.await().toString()
         }
 
-    fun addEquipmentToFirebase() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _equipmentState.value.bitmap?.let {
-                _addEquipmentState.value = ApiResult.Loading
-                val equipment = _equipmentState.value.toEquipment()
-                val bytes = ImageUtils.bitmapToByteArray(it)
-                val imageUrl = uploadBytesToFirebase(bytes)
-                if (!imageUrl.isEmpty()) {
-                    equipmentsRepository.addEquipment(equipment).collect { result ->
-                        if (result is ApiResult.Success) {
-                            notifyState.tryEmit(NotifyState.ShowToast("Equipment added successfully!"))
-                        } else if (result is ApiResult.Error) {
-                            notifyState.tryEmit(NotifyState.ShowToast(result.message))
+    suspend fun addEquipmentToFirebase() {
+        _equipmentState.value.bitmap?.let {
+            _addEquipmentState.value = ApiResult.Loading
+            val equipment = _equipmentState.value.toEquipment()
+            val bytes = ImageUtils.bitmapToByteArray(it)
+            val imageUrl = uploadBytesToFirebase(bytes)
+            if (!imageUrl.isEmpty()) {
+                equipment.imageUrl = imageUrl
+                equipmentsRepository.addEquipment(equipment).collect { result ->
+                    if (result is ApiResult.Success) {
+                        withContext(Dispatchers.Main) {
+                            notifyState.emit(NotifyState.ShowToast("Equipment added successfully!"))
+                            _addEquipmentState.value = result
+                            delay(300)
+                            notifyState.emit(NotifyState.LaunchActivity)
                         }
-                        _addEquipmentState.value = result
+                    } else if (result is ApiResult.Error) {
+                        withContext(Dispatchers.Main) {
+                            notifyState.emit(NotifyState.ShowToast(result.message))
+                            _addEquipmentState.value = result
+                        }
                     }
-                } else {
-                    notifyState.tryEmit(NotifyState.ShowToast("Image uploading failed!"))
                 }
-            } ?: run {
-                errorMessage.value = "Please upload image"
+            } else {
+                notifyState.emit(NotifyState.ShowToast("Image uploading failed!"))
             }
+        } ?: run {
+            errorMessage.value = "Please upload image"
         }
     }
 
@@ -113,6 +120,10 @@ class AddEquipmentViewModel(
         _equipmentState.value = _equipmentState.value.copy(imageUrl = userType)
     }
 
+    fun onEquipmentTypeChanged(equipmentType: EquipmentType) {
+        _equipmentState.value = _equipmentState.value.copy(equipmentType = equipmentType)
+    }
+
     override fun onCleared() {
         super.onCleared()
     }
@@ -126,7 +137,7 @@ class AddEquipmentViewModel(
             id = equipment.id,
             gymId = equipment.gymId,
             description = equipment.description,
-            type = equipment.type,
+            equipmentType = equipment.equipmentType,
             imageUrl = equipment.imageUrl,
             addedComplaints = equipment.addedComplaints
         )

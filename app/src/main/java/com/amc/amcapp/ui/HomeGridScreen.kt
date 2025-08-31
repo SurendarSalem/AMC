@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -73,7 +74,8 @@ fun EqualSizeMenuGridScreen(
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .padding(0.dp)
-                .size(240.dp)
+                .fillMaxHeight(fraction = 0.4f)
+                .aspectRatio(1f)
                 .align(
                     Alignment.TopCenter
                 )
@@ -143,22 +145,4 @@ private fun MenuTile(
             )
         }
     }
-}
-
-/* ---------- Preview / Sample usage ---------- */
-
-@Composable
-fun SampleEqualSizeMenuGrid() {
-    val items = listOf(
-        MenuItem("dash", "Dashboard", Icons.Default.Dashboard),
-        MenuItem("cust", "Customers", Icons.Default.People),
-        MenuItem("sales", "Sales", Icons.Default.ShoppingCart),
-        MenuItem("inv", "Inventory", Icons.Default.Inventory),
-        MenuItem("rep", "Reports", Icons.Default.Assessment),
-        MenuItem("set", "Settings", Icons.Default.Settings),
-        MenuItem("help", "Help", Icons.Default.Help),
-        MenuItem("abt", "About", Icons.Default.Info)
-    )
-    EqualSizeMenuGridScreen(
-        items = items, onClick = { /* handle navigation */ })
 }

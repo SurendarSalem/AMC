@@ -23,30 +23,22 @@ class EquipmentsListViewModel(private val equipmentsRepository: IEquipmentsRepos
         MutableStateFlow(ApiResult.Loading)
     val equipmentsListState = _equipmentsListState.asStateFlow()
     var showToast = MutableSharedFlow<NotifyState>()
+    var userId: String = ""
 
-    init {
-        viewModelScope.launch {
-            fetchEquipments()
-        }
-    }
 
-    private suspend fun fetchEquipments() {
-        equipmentsRepository.getEquipments("").collect { result ->
+     suspend fun fetchEquipments(userId: String) {
+        equipmentsRepository.getEquipments(userId).collect { result ->
             _equipmentsListState.value = result
         }
     }
 
-    suspend fun onEquipmentAdded(equipment: Equipment) {
-        withContext(Dispatchers.Main) {
-            _equipmentsListState.value = ApiResult.Loading
-        }
-        equipmentsRepository.addEquipment(equipment).collect { result ->
-            showToast.emit(NotifyState.ShowToast("Added Equipment Successfully!"))
-        }
-    }
 
     fun resetState() {
         _equipmentsListState.value = ApiResult.Loading
+    }
+
+    fun preFillUserId(userId: String) {
+        this.userId = userId
     }
 
 }

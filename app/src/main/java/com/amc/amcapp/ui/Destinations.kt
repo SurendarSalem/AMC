@@ -4,11 +4,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.SportsGymnastics
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -21,13 +23,11 @@ enum class DrawerDest(
     Customer(
         "customer", "Customer", Icons.Default.Person
     ),
-    Technician("technician", "Technician", Icons.Default.PersonPin),
+    Technician("technician", "Technician", Icons.Default.CleaningServices),
 
     Settings("settings", "Settings", Icons.Default.Settings),
 
-    Sales("settings", "Sales", Icons.Default.Settings),
-
-    Logout("logout", "Logout", Icons.Default.Settings),
+    Sales("sales", "Sales", Icons.Default.ShoppingBasket)
 
 }
 

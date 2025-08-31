@@ -2,6 +2,7 @@ package com.amc.amcapp.viewmodel
 
 import android.graphics.Bitmap
 import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.data.IUserRepository
@@ -28,7 +29,7 @@ data class AddUserState(
     val password: String = "",
     val confirmPassword: String = "",
     val name: String = "",
-    val userType: UserType = UserType.TECHNICIAN,
+    val userType: UserType? = null,
     var bitmap: Bitmap? = null,
     val imageUrl: String = "",
     val phoneNumber: String = "",
@@ -73,7 +74,7 @@ class AddUserViewModel(
     private var _addUserState = MutableStateFlow(AddUserState())
     val addUserState = _addUserState.asStateFlow()
     var notifyState = MutableSharedFlow<NotifyState>()
-
+    val errorMessage = MutableStateFlow("")
 
     suspend fun createUser() {
         _addUserUiState.value = ApiResult.Loading
@@ -124,8 +125,49 @@ class AddUserViewModel(
         return user
     }
 
-    fun isValidUser(username: String, password: String): Boolean {
-        return username.isNotEmpty() && username.length > 4 && password.isNotEmpty() && password.length >= 8
+    fun isValidUser(isEditMode: Boolean = false): Boolean {
+        if (!isEditMode && addUserState.value.bitmap == null) {
+            errorMessage.value = "Please select an image"
+            return false
+        }
+        if (isEditMode && addUserState.value.imageUrl.isEmpty() && addUserState.value.bitmap == null) {
+            errorMessage.value = "Please select an image in Edit mode"
+            return false
+        }
+        if (addUserState.value.name.isEmpty() || addUserState.value.name.length < 6) {
+            errorMessage.value = "Name should not be empty and should be of atleast 6 characters"
+            return false
+        }
+        if (addUserState.value.userType == null) {
+            errorMessage.value = "Please select the User type"
+            return false
+        }
+        if (addUserState.value.email.isEmpty()) {
+            errorMessage.value = "Email should not be empty"
+            return false
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(addUserState.value.email).matches()) {
+            errorMessage.value = "Please enter a valid email id"
+            return false
+        }
+        if (addUserState.value.password.length < 8) {
+            errorMessage.value = "Password should be atleast 8 characters"
+            return false
+        }
+        if (!isEditMode && (addUserState.value.password != addUserState.value.confirmPassword)) {
+            errorMessage.value = "Password and Confirm Password does not match"
+            return false
+        }
+        if (addUserState.value.phoneNumber.length < 10) {
+            errorMessage.value = "Enter a valid Mobile Number"
+            return false
+        }
+        if (addUserState.value.address.length < 10) {
+            errorMessage.value = "Address should be atleast 10 characters"
+            return false
+        }
+        errorMessage.value = ""
+        return true
     }
 
     fun onNameChanged(name: String) {
@@ -171,6 +213,7 @@ class AddUserViewModel(
 
     fun onBitmapChanged(bitmap: Bitmap?) {
         _addUserState.value = _addUserState.value.copy(bitmap = bitmap)
+        onImageUrlChanged("")
     }
 
     fun preFillUserState(user: User) {
