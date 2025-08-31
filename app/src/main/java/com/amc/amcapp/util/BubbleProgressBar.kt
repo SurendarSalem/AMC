@@ -21,17 +21,17 @@ import kotlin.math.roundToInt
 
 @Composable
 fun BubbleProgressBar(
-    count: Int,
     modifier: Modifier = Modifier,
-    dotSize: Dp = 8.dp,
-    spacing: Dp = 8.dp,
+    count: Int = 5,
+    dotSize: Dp = 10.dp,
+    spacing: Dp = 10.dp,
     activeIndex: Int? = null,       // if provided, shows that index active
     progress: Float? = null,        // if provided (0f..1f) shows determinate progress
     activeScale: Float = 1.6f,
     inactiveAlpha: Float = 0.35f,
     activeColor: Color = MaterialTheme.colorScheme.primary,
     inactiveColor: Color = activeColor.copy(alpha = 0.25f),
-    animationDurationMs: Int = 800
+    animationDurationMs: Int = 300
 ) {
     require(count > 0) { "count must be > 0" }
 

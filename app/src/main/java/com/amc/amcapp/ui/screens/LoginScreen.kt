@@ -159,7 +159,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
+            /*Text(
                 "Don't have an account? Sign up",
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 fontSize = LocalDimens.current.textMedium.sp,
@@ -169,7 +169,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                         if (loginResult !is AuthResult.Loading) {
                             navController.navigate(Screen.SignUpScreen.route)
                         }
-                    })
+                    })*/
         }
 
         SnackbarHost(

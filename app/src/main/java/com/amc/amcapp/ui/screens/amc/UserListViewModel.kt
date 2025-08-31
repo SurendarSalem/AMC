@@ -6,7 +6,6 @@ import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
-import com.amc.amcapp.ui.ApiResult.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,13 +22,12 @@ class UserListViewModel(val userRepository: IUserRepository) : ViewModel() {
     var _filterUserType: MutableStateFlow<UserType?> = MutableStateFlow(UserType.TECHNICIAN)
 
     val filteredUsers = combine(
-        _usersState,
-        _filterUserType
+        _usersState, _filterUserType
     ) { usersResult, filterType ->
         when (usersResult) {
             is ApiResult.Success -> {
                 filterType?.let { type ->
-                    Success(usersResult.data.filter { it.userType == type })
+                    ApiResult.Success(usersResult.data.filter { it.userType == type })
                 } ?: usersResult
             }
 

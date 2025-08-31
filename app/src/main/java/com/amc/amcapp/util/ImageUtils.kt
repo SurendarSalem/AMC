@@ -4,10 +4,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -60,4 +64,13 @@ object ImageUtils {
             bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
             return@withContext stream.toByteArray()
         }
+
+    suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? =
+        withContext(Dispatchers.IO) {
+            val loader = ImageLoader(context)
+            val request = ImageRequest.Builder(context).data(url).allowHardware(false).build()
+            val result = (loader.execute(request) as? SuccessResult)?.drawable
+            return@withContext (result as? BitmapDrawable)?.bitmap
+        }
 }
+

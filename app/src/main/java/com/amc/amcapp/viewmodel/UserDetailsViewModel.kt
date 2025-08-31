@@ -22,11 +22,12 @@ import java.util.UUID
 
 
 data class UserDetailsState(
-    val phoneNumber: String = "tech2@gmail.com",
-    val address: String = "User@123",
+    val phoneNumber: String = "",
+    val address: String = "",
     val gymName: String = "",
     val bitmap: Bitmap? = null,
-    val imageUrl: String = ""
+    val imageUrl: String = "",
+    val isLoading:Boolean = false
 )
 
 
@@ -34,7 +35,7 @@ class UserDetailsViewModel(
     private val userRepository: IUserRepository
 ) : ViewModel() {
 
-    private var _userDetailsState = MutableStateFlow(AddUserState())
+    private var _userDetailsState = MutableStateFlow(UserDetailsState())
     val userDetailsState = _userDetailsState.asStateFlow()
     var notifyState = MutableSharedFlow<NotifyState>()
 
@@ -53,23 +54,19 @@ class UserDetailsViewModel(
     }
 
     fun onPhoneNumberChanged(name: String) {
-        _userDetailsState.value = _userDetailsState.value.copy(name = name)
+        _userDetailsState.value = _userDetailsState.value.copy(phoneNumber = name)
     }
 
     fun onAddressChanged(email: String) {
-        _userDetailsState.value = _userDetailsState.value.copy(email = email)
+        _userDetailsState.value = _userDetailsState.value.copy(address = email)
     }
 
     fun onGymNameChanged(password: String) {
-        _userDetailsState.value = _userDetailsState.value.copy(password = password)
+        _userDetailsState.value = _userDetailsState.value.copy(gymName = password)
     }
 
-    fun onBitmapChanged(password: String) {
-        _userDetailsState.value = _userDetailsState.value.copy(confirmPassword = password)
-    }
-
-    fun onImageUrlChanged(userType: UserType) {
-        _userDetailsState.value = _userDetailsState.value.copy(userType = userType)
+    fun onImageUrlChanged(userType: String) {
+        _userDetailsState.value = _userDetailsState.value.copy(imageUrl = userType)
     }
 
     override fun onCleared() {

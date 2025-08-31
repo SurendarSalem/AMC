@@ -27,7 +27,7 @@ fun Avatar(
     imageUrl: String?, name: String, modifier: Modifier = Modifier
 ) {
     val size = 56.dp
-    if (imageUrl.isNullOrBlank()) {
+    if (imageUrl.isNullOrEmpty()) {
         Box(
             modifier = modifier
                 .size(size)
@@ -42,8 +42,8 @@ fun Avatar(
     } else {
         // Coil AsyncImage for network avatar
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true)
-                .build(),
+            model = ImageRequest.Builder(LocalContext.current).data(imageUrl).error(R.drawable.gym)
+                .crossfade(true).build(),
             contentDescription = name,
             placeholder = painterResource(R.drawable.gym),
             modifier = modifier

@@ -1,5 +1,6 @@
 package com.amc.amcapp.ui
 
+import EquipmentsListScreen
 import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.LocalActivity
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.filled.FilePresent
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Badge
 import androidx.compose.material3.DividerDefaults
@@ -32,7 +34,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,9 +55,9 @@ import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.screens.ServiceScreen
 import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
+import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.viewmodel.LandingViewModel
 import kotlinx.coroutines.launch
-import com.amc.amcapp.ui.theme.LocalDimens
 
 @Composable
 private fun DrawerHeader(user: User?) {
@@ -78,24 +83,26 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
     val context = LocalContext.current
     val topDestinations = DrawerDest.entries
 
-    ModalNavigationDrawer(
-        drawerState = drawerState, drawerContent = {
-            ModalDrawerSheet {
+    // 🔑 State for menu (child controlled)
+    var menuEnabled by remember { mutableStateOf(false) }
+    var menuIcon by remember { mutableStateOf(Icons.Default.Search) }
+    var menuClick: () -> Unit by remember { mutableStateOf({}) }
 
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
                 val user = landingViewModel.user
                 DrawerHeader(user)
-
 
                 topDestinations.forEach { dest ->
                     NavigationDrawerItem(
                         label = { Text(dest.label) },
-                        selected = currentDestination(navController)?.route == dest.route || currentDestination(
-                            navController
-                        )?.route?.contains(dest.route + "/") == true,
+                        selected = currentDestination(navController)?.route == dest.route
+                                || currentDestination(navController)?.route?.contains(dest.route + "/") == true,
                         onClick = {
                             scope.launch { drawerState.close() }
                             try {
-
                                 navController.navigate(dest.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
@@ -104,12 +111,11 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                                     restoreState = true
                                 }
                             } catch (e: IllegalArgumentException) {
-
+                                e.printStackTrace()
                             }
                         },
                         icon = { Icon(dest.icon, contentDescription = dest.label) },
-                        badge = dest.badge?.let { { Badge { Text(it) } } },
-                        modifier = Modifier
+                        badge = dest.badge?.let { { Badge { Text(it) } } }
                     )
                 }
 
@@ -125,86 +131,90 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                             scope.launch {
                                 landingViewModel.logout()
                                 drawerState.close()
-                                activity?.let {
-                                    finishAffinity(it)
-                                }
+                                activity?.let { finishAffinity(it) }
                                 val intent = Intent(context, MainActivity::class.java)
                                 context.startActivity(intent)
-
                             }
-                        }, verticalAlignment = Alignment.CenterVertically
+                        },
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Logout,
-                        contentDescription = "Menu",
+                        contentDescription = "Logout",
                         modifier = Modifier.padding(LocalDimens.current.spacingMedium.dp)
                     )
                     Text("Logout")
                 }
             }
-        }) {
-
-        Scaffold(topBar = {
-            TopAppBar(
-                title = { Text(titleForDestination(currentDestination(navController))) },
-                navigationIcon = {
-                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Open drawer")
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(titleForDestination(currentDestination(navController))) },
+                    actions = {
+                        if (menuEnabled) {
+                            IconButton(onClick = { menuClick() }) {
+                                Icon(menuIcon, contentDescription = "Menu Action")
+                            }
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Open drawer")
+                        }
                     }
-                },
-            )
-        }) { innerPadding ->
+                )
+            }
+        ) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = DrawerDest.Home.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
                 val menuItems: List<MenuItem> = listOf(
-                    MenuItem(
-                        "pending_complaints", "Pending Complaints", Icons.Default.PendingActions
-                    ),
+                    MenuItem("pending_complaints", "Pending Complaints", Icons.Default.PendingActions),
                     MenuItem("create_schedule", "Create Schedule", Icons.Default.Schedule),
                     MenuItem("today_amcs", "Today AMCs", Icons.Default.Today),
                     MenuItem("service_report", "Generate Report", Icons.Default.FilePresent)
                 )
 
                 composable(DrawerDest.Home.route) {
-                    EqualSizeMenuGridScreen(
-                        items = menuItems, onClick = {
-
-                        })
+                    EqualSizeMenuGridScreen(items = menuItems, onClick = { })
                 }
 
                 composable(DrawerDest.Services.route) {
                     ServiceScreen()
                 }
 
-
                 composable(DrawerDest.Customer.route) {
                     CustomerListScreen(navController)
                 }
 
-                composable(UserDest.AddUser.route) {
-                    AddUserScreen(navController)
+                composable(UserDest.Equipments.route) {
+                    EquipmentsListScreen(navController)
                 }
+
                 composable(UserDest.AddUser.route) {
-                    AddUserScreen(navController)
+                    val user = navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.get<User>("user")
+
+                    AddUserScreen(
+                        navController = navController,
+                        user = user,
+                        onMenuUpdated = { enabled, icon, onClick ->
+                            menuEnabled = enabled
+                            menuIcon = icon
+                            menuClick = onClick
+                        }
+                    )
                 }
             }
         }
     }
 }
 
-
-@Composable
-fun SearchScreen() {
-    Text("Search UI...")
-}
-
-@Composable
-fun FavoritesScreen() {
-    Text("Saved items...")
-}
 
 @Composable
 fun currentDestination(navController: NavHostController): NavDestination? {

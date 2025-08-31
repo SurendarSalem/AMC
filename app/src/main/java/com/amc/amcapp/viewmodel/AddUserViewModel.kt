@@ -5,12 +5,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.data.IUserRepository
+import com.amc.amcapp.model.GymOwner
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AuthResult
 import com.amc.amcapp.util.ImageUtils
+import com.amc.amcapp.util.ImageUtils.loadBitmapFromUrl
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -23,19 +25,44 @@ import java.util.UUID
 
 
 data class AddUserState(
-    val email: String = "tech2@gmail.com",
-    val password: String = "User@123",
+    val firebaseId: String = "",
+    val email: String = "",
+    val password: String = "",
     val confirmPassword: String = "",
-    val name: String = "Tech 2",
+    val name: String = "",
     val userType: UserType = UserType.TECHNICIAN,
     var bitmap: Bitmap? = null,
-    val imageUrl: String = ""
+    val imageUrl: String = "",
+    val phoneNumber: String = "",
+    val address: String = "",
+    val gymName: String = "",
+    val isLoading: Boolean = false
 )
 
 fun AddUserState.toUser(): User {
-    return User(
-        email = email, name = name, password = password, userType = userType
-    )
+    return if (userType == UserType.GYM_OWNER) {
+        GymOwner(
+            firebaseId = firebaseId,
+            email = email,
+            name = name,
+            password = password,
+            userType = userType,
+            imageUrl = imageUrl,
+            phoneNumber = phoneNumber,
+            address = address
+        )
+    } else {
+        User(
+            firebaseId = firebaseId,
+            email = email,
+            name = name,
+            password = password,
+            userType = userType,
+            imageUrl = imageUrl,
+            phoneNumber = phoneNumber,
+            address = address
+        )
+    }
 }
 
 
@@ -63,6 +90,9 @@ class AddUserViewModel(
                 val addedUser = addUserToFirebase(user)
                 addedUser?.let {
                     _addUserUiState.value = ApiResult.Success(addedUser)
+                    notifyState.emit(
+                        NotifyState.LaunchActivity
+                    )
                 } ?: run {
                     _addUserUiState.value = ApiResult.Error("Unable to create user")
                     notifyState.emit(
@@ -120,6 +150,22 @@ class AddUserViewModel(
         _addUserState.value = _addUserState.value.copy(userType = userType)
     }
 
+    fun onPhoneNumberChanged(name: String) {
+        _addUserState.value = _addUserState.value.copy(phoneNumber = name)
+    }
+
+    fun onAddressChanged(email: String) {
+        _addUserState.value = _addUserState.value.copy(address = email)
+    }
+
+    fun onGymNameChanged(password: String) {
+        _addUserState.value = _addUserState.value.copy(gymName = password)
+    }
+
+    fun onImageUrlChanged(userType: String) {
+        _addUserState.value = _addUserState.value.copy(imageUrl = userType)
+    }
+
     override fun onCleared() {
         super.onCleared()
         Log.d("Surendar", "AuthViewModel cleared")
@@ -127,5 +173,19 @@ class AddUserViewModel(
 
     fun onBitmapChanged(bitmap: Bitmap?) {
         _addUserState.value = _addUserState.value.copy(bitmap = bitmap)
+    }
+
+    fun preFillUserState(user: User) {
+        _addUserState.value = AddUserState(
+            firebaseId = user.firebaseId,
+            email = user.email,
+            password = user.password,
+            name = user.name,
+            userType = user.userType,
+            imageUrl = user.imageUrl,
+            gymName = if (user is GymOwner) user.address else "",
+            phoneNumber = user.phoneNumber,
+            address = user.address
+        )
     }
 }

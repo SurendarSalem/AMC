@@ -26,7 +26,7 @@ class AMCListViewModel(amcRepository: IAmcRepository) : ViewModel() {
             _amcListState.value = ApiResult.Loading
             val amcList = amcRepository.getAllAMCs()
             _amcListState.value =
-                ApiResult.Success(amcList + amcList + amcList + amcList + amcList + amcList + amcList + amcList + amcList)
+                ApiResult.Success(amcList)
         } catch (e: Exception) {
             _amcListState.value = ApiResult.Error(e.message ?: "Unknown error occurred")
         }

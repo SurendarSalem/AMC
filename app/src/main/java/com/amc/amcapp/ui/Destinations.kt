@@ -34,7 +34,8 @@ enum class DrawerDest(
 enum class UserDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
-    AddUser("customer/adduser", "Add User", Icons.Default.Add)
+    AddUser("customer/addUser", "Add User", Icons.Default.Add),
+    Equipments("equipments", "Equipments", Icons.Default.SportsGymnastics)
 }
 
 enum class BottomDest(val route: String, val label: String, val icon: ImageVector) {

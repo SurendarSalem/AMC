@@ -57,6 +57,7 @@ import coil.request.ImageRequest
 import com.amc.amcapp.R
 import com.amc.amcapp.ui.theme.Dimens
 import com.amc.amcapp.ui.theme.LocalDimens
+import com.amc.amcapp.util.BubbleProgressBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -66,7 +67,8 @@ fun ImagePicker(
     imageUrl: String?,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     var aspectRatio by remember { mutableFloatStateOf(1f) }
 
@@ -86,47 +88,33 @@ fun ImagePicker(
             placeholder = painterResource(id = R.drawable.error_placeholder),
             modifier = Modifier.fillMaxWidth()
         )
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.CameraAlt,
-                contentDescription = "Camera Icon",
-                modifier = Modifier
-                    .size(48.dp)
-                    .alpha(0.5f)
-                    .align(Alignment.BottomStart)
-                    .background(
-                        MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.extraSmall
-                    )
-                    .padding(8.dp)
-                    .clickable { onCameraClick() },
-                tint = Color.White
-            )
-
-            Icon(
-                imageVector = Icons.Rounded.BrowseGallery,
-                contentDescription = "Camera Icon",
-                modifier = Modifier
-                    .size(48.dp)
-                    .alpha(0.5f)
-                    .align(Alignment.BottomEnd)
-                    .background(
-                        MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.extraSmall
-                    )
-                    .padding(8.dp)
-                    .clickable { onGalleryClick() },
-                tint = Color.White,
-            )
-
-            bitmap?.let {
+        if (enabled) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
                 Icon(
-                    imageVector = Icons.Rounded.Delete,
+                    imageVector = Icons.Rounded.CameraAlt,
                     contentDescription = "Camera Icon",
                     modifier = Modifier
                         .size(48.dp)
                         .alpha(0.5f)
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.BottomStart)
+                        .background(
+                            MaterialTheme.colorScheme.primary,
+                            shape = MaterialTheme.shapes.extraSmall
+                        )
+                        .padding(8.dp)
+                        .clickable { onCameraClick() },
+                    tint = Color.White
+                )
+
+                Icon(
+                    imageVector = Icons.Rounded.BrowseGallery,
+                    contentDescription = "Camera Icon",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .alpha(0.5f)
+                        .align(Alignment.BottomEnd)
                         .background(
                             MaterialTheme.colorScheme.primary,
                             shape = MaterialTheme.shapes.extraSmall
@@ -135,6 +123,24 @@ fun ImagePicker(
                         .clickable { onGalleryClick() },
                     tint = Color.White,
                 )
+
+                bitmap?.let {
+                    Icon(
+                        imageVector = Icons.Rounded.Delete,
+                        contentDescription = "Camera Icon",
+                        modifier = Modifier
+                            .size(48.dp)
+                            .alpha(0.5f)
+                            .align(Alignment.TopEnd)
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.extraSmall
+                            )
+                            .padding(8.dp)
+                            .clickable { onGalleryClick() },
+                        tint = Color.White,
+                    )
+                }
             }
         }
     }
@@ -148,6 +154,7 @@ fun AppTextField(
     label: String,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     minLines: Int = 1,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
@@ -155,7 +162,44 @@ fun AppTextField(
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
         visualTransformation = visualTransformation,
-        minLines = minLines
+        minLines = minLines,
+        enabled = enabled
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+fun AppProgressBar(boxScope: BoxScope) {
+    boxScope.apply {
+        BubbleProgressBar(
+            count = 3,
+            dotSize = 8.dp,
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.Center),
+            animationDurationMs = 300
+        )
+    }
+}
+
+@Composable
+fun PhoneNumberField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    minLines: Int = 1,
+    enabled: Boolean = true
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        visualTransformation = visualTransformation,
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone),
+        minLines = minLines,
+        enabled = enabled
     )
     Spacer(modifier = Modifier.height(8.dp))
 }
@@ -214,7 +258,7 @@ fun showSnackBar(
 }
 
 @Composable
-fun EmailField(text: String, onValueChange: (String) -> Unit) {
+fun EmailField(text: String, onValueChange: (String) -> Unit, enabled: Boolean = true) {
     OutlinedTextField(
         value = text,
         onValueChange = onValueChange,
@@ -227,12 +271,18 @@ fun EmailField(text: String, onValueChange: (String) -> Unit) {
                 imageVector = Icons.Default.Email, contentDescription = "Email Icon"
             )
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        enabled = enabled
     )
 }
 
 @Composable
-fun PasswordField(label: String = "Password", text: String, onValueChange: (String) -> Unit) {
+fun PasswordField(
+    label: String = "Password",
+    text: String,
+    onValueChange: (String) -> Unit,
+    enabled: Boolean = true
+) {
     val hideIcon = remember { mutableStateOf(true) }
     OutlinedTextField(
         value = text,
@@ -256,7 +306,8 @@ fun PasswordField(label: String = "Password", text: String, onValueChange: (Stri
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         visualTransformation = if (hideIcon.value) PasswordVisualTransformation() else VisualTransformation.None,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        enabled = enabled
     )
 }
 

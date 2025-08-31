@@ -2,8 +2,9 @@ package com.amc.amcapp.ui.screens.amc
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,16 +24,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
-import com.amc.amcapp.ui.RoundedTextGradient
-import com.amc.amcapp.ui.theme.LocalDimens
+import com.amc.amcapp.util.Avatar
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -40,57 +44,94 @@ fun UserItem(
     user: User,
     onClick: (() -> Unit)? = null,
 ) {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        label = "scaleAnim"
+    )
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, Color.LightGray),
+            .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale
+            )
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        pressed = true
+                        tryAwaitRelease()
+                        pressed = false
+                    },
+                    onTap = { onClick?.invoke() }
+                )
+            },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
-        )) {
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar
+            Avatar(user.imageUrl, user.name)
 
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Icon(
-                modifier = Modifier
-                    .padding(LocalDimens.current.spacingLarge.dp)
-                    .align(Alignment.TopEnd),
-                imageVector =
-                    when (user.userType) {
-                        UserType.CUSTOMER -> Icons.Default.Person
-                        UserType.TECHNICIAN -> Icons.Default.HomeRepairService
-                        UserType.ADMIN -> Icons.Default.Person
-                        UserType.GYM_OWNER -> Icons.Default.SportsGymnastics
-                        UserType.SALES_PERSON -> Icons.Default.Money
-                    },
-                contentDescription = user.userType.label,
-                tint = MaterialTheme.colorScheme.secondary
-            )
-            Row(
-                modifier = Modifier.padding(LocalDimens.current.spacingLarge.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Spacer(Modifier.width(16.dp))
+
+            // User info
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                RoundedTextGradient(user.name.toCharArray()[0].toString())
+                Text(
+                    text = user.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-                Spacer(Modifier.width(LocalDimens.current.spacingMedium.dp))
-
-                Column {
-
-                    Text(
-                        text = user.name,
-                        fontSize = LocalDimens.current.textLarge.sp,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    Text(
-                        text = user.userType.label,
-                        fontSize = LocalDimens.current.textMedium.sp,
-                    )
-                }
-
+                RoleBadge(user.userType)
             }
+
+            // Role icon
+            Icon(
+                imageVector = when (user.userType) {
+                    UserType.CUSTOMER -> Icons.Default.Person
+                    UserType.TECHNICIAN -> Icons.Default.HomeRepairService
+                    UserType.ADMIN -> Icons.Default.Person
+                    UserType.GYM_OWNER -> Icons.Default.SportsGymnastics
+                    UserType.SALES_PERSON -> Icons.Default.Money
+                },
+                contentDescription = user.userType.label,
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
+
+@Composable
+fun RoleBadge(userType: UserType) {
+    Box(
+        modifier = Modifier
+            .padding(top = 4.dp)
+            .background(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = userType.label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
 

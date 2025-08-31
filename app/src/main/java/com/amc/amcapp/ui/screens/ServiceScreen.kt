@@ -22,8 +22,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.amc.amcapp.ui.BottomDest
-import com.amc.amcapp.ui.FavoritesScreen
-import com.amc.amcapp.ui.SearchScreen
 import com.amc.amcapp.ui.screens.amc.AMCListScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -33,8 +31,7 @@ fun ServiceScreen() {
     val bottomItems = BottomDest.entries
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         // Main content
         Box(
@@ -45,12 +42,9 @@ fun ServiceScreen() {
             NavHost(
                 navController = navController,
                 startDestination = BottomDest.Amc.route,
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             ) {
                 composable(BottomDest.Amc.route) { AMCListScreen(navController) }
-                composable(BottomDest.Services.route) { SearchScreen() }
-                composable(BottomDest.Favorites.route) { FavoritesScreen() }
             }
         }
 
@@ -71,33 +65,27 @@ private fun BottomBar(navController: NavHostController, items: List<BottomDest>)
         windowInsets = androidx.compose.foundation.layout.WindowInsets(0.dp) // 👈 ensures no padding
     ) {
         items.forEach { item ->
-            NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
+            NavigationBarItem(selected = currentRoute == item.route, onClick = {
+                navController.navigate(item.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
                     }
-                },
-                icon = {
-                    Icon(
-                        item.icon,
-                        contentDescription = item.label,
-                        tint = if (currentRoute == item.route) White
-                        else MaterialTheme.colorScheme.surface
-                    )
-                },
-                label = {
-                    Text(
-                        item.label,
-                        color = if (currentRoute == item.route) White
-                        else MaterialTheme.colorScheme.surface
-                    )
+                    launchSingleTop = true
+                    restoreState = true
                 }
-            )
+            }, icon = {
+                Icon(
+                    item.icon,
+                    contentDescription = item.label,
+                    tint = if (currentRoute == item.route) White
+                    else MaterialTheme.colorScheme.surface
+                )
+            }, label = {
+                Text(
+                    item.label, color = if (currentRoute == item.route) White
+                    else MaterialTheme.colorScheme.surface
+                )
+            })
         }
     }
 }

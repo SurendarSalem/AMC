@@ -1,5 +1,6 @@
 package com.amc.amcapp.equipments
 
+import com.amc.amcapp.Complaint
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.Gym
 import com.amc.amcapp.ui.ApiResult
@@ -44,7 +45,70 @@ class EquipmentsRepository(database: FirebaseFirestore = Firebase.firestore) :
             gymRef.whereEqualTo("gymId", gymId).get().addOnSuccessListener { querySnapshot ->
                 val equipments =
                     querySnapshot.documents.mapNotNull { it.toObject(Equipment::class.java) }
-                trySend(ApiResult.Success(equipments))
+             /*   trySend(ApiResult.Success(equipments))*/
+                trySend(
+                    ApiResult.Success(
+                        listOf(
+                            Equipment(
+                                id = "1",
+                                name = "Bare Bench",
+                                gymId = "1",
+                                type = "",
+                                imageUrl = "https://firebasestorage.googleapis.com/v0/b/amc-app-51c71.firebasestorage.app/o/images%2FHDRI_Sample_Scene_Balls_(JPEG-HDR)%20Medium%20Small.jpeg?alt=media&token=6481bc0a-b310-4cb6-b4ab-efc976f31dc5",
+                                availableComplaints = emptyList(),
+                                addedComplaints = emptyList(),
+                            ), Equipment(
+                                id = "1",
+                                name = "Bare Bench",
+                                gymId = "1",
+                                type = "",
+                                imageUrl = "https://firebasestorage.googleapis.com/v0/b/amc-app-51c71.firebasestorage.app/o/images%2FHDRI_Sample_Scene_Balls_(JPEG-HDR)%20Medium%20Small.jpeg?alt=media&token=6481bc0a-b310-4cb6-b4ab-efc976f31dc5",
+                                availableComplaints = emptyList(),
+                                addedComplaints = emptyList(),
+                            ), Equipment(
+                                id = "1",
+                                name = "Bare Bench",
+                                gymId = "1",
+                                type = "",
+                                imageUrl = "https://firebasestorage.googleapis.com/v0/b/amc-app-51c71.firebasestorage.app/o/images%2FHDRI_Sample_Scene_Balls_(JPEG-HDR)%20Medium%20Small.jpeg?alt=media&token=6481bc0a-b310-4cb6-b4ab-efc976f31dc5",
+                                availableComplaints = emptyList(),
+                                addedComplaints = emptyList(),
+                            ), Equipment(
+                                id = "1",
+                                name = "Bare Bench",
+                                gymId = "1",
+                                type = "",
+                                imageUrl = "https://firebasestorage.googleapis.com/v0/b/amc-app-51c71.firebasestorage.app/o/images%2FHDRI_Sample_Scene_Balls_(JPEG-HDR)%20Medium%20Small.jpeg?alt=media&token=6481bc0a-b310-4cb6-b4ab-efc976f31dc5",
+                                availableComplaints = emptyList(),
+                                addedComplaints = emptyList(),
+                            ), Equipment(
+                                id = "1",
+                                name = "Bare Bench",
+                                gymId = "1",
+                                type = "",
+                                imageUrl = "https://firebasestorage.googleapis.com/v0/b/amc-app-51c71.firebasestorage.app/o/images%2FHDRI_Sample_Scene_Balls_(JPEG-HDR)%20Medium%20Small.jpeg?alt=media&token=6481bc0a-b310-4cb6-b4ab-efc976f31dc5",
+                                availableComplaints = emptyList(),
+                                addedComplaints = emptyList(),
+                            ), Equipment(
+                                id = "1",
+                                name = "Bare Bench",
+                                gymId = "1",
+                                type = "",
+                                imageUrl = "https://firebasestorage.googleapis.com/v0/b/amc-app-51c71.firebasestorage.app/o/images%2FHDRI_Sample_Scene_Balls_(JPEG-HDR)%20Medium%20Small.jpeg?alt=media&token=6481bc0a-b310-4cb6-b4ab-efc976f31dc5",
+                                availableComplaints = emptyList(),
+                                addedComplaints = emptyList(),
+                            ), Equipment(
+                                id = "1",
+                                name = "Bare Bench",
+                                gymId = "1",
+                                type = "",
+                                imageUrl = "https://firebasestorage.googleapis.com/v0/b/amc-app-51c71.firebasestorage.app/o/images%2FHDRI_Sample_Scene_Balls_(JPEG-HDR)%20Medium%20Small.jpeg?alt=media&token=6481bc0a-b310-4cb6-b4ab-efc976f31dc5",
+                                availableComplaints = emptyList(),
+                                addedComplaints = emptyList(),
+                            )
+                        )
+                    )
+                )
             }.addOnFailureListener { exception ->
                 trySend(ApiResult.Error(exception.message ?: "Unknown error"))
             }
@@ -53,8 +117,7 @@ class EquipmentsRepository(database: FirebaseFirestore = Firebase.firestore) :
     }
 
     override suspend fun uploadBytesToFirebase(
-        bytes: ByteArray,
-        pathPrefix: String
+        bytes: ByteArray, pathPrefix: String
     ): String = withContext(Dispatchers.IO) {
         val storage = Firebase.storage
         val fileName = "$pathPrefix/${UUID.randomUUID()}.jpg"

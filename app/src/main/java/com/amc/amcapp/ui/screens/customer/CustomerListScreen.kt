@@ -33,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
@@ -43,7 +42,6 @@ import com.amc.amcapp.ui.AppLoadingBar
 import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.ui.screens.amc.UserItem
 import com.amc.amcapp.ui.screens.amc.UserListViewModel
-import com.amc.amcapp.ui.theme.LocalDimens
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,34 +52,42 @@ fun CustomerListScreen(
 ) {
 
     Column {
+        val selectedUserType by userListViewModel._filterUserType.collectAsState()
+        val userTypes = UserType.entries.filter { it != UserType.ADMIN }
+
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val userTypes = UserType.entries.filter { it != UserType.ADMIN }
-
             items(userTypes) { userType ->
                 OutlinedButton(
                     onClick = { userListViewModel.setFilter(userType) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (userListViewModel._filterUserType.collectAsState().value == userType) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.primary.copy(
-                            alpha = 0.2f
-                        ),
-                        contentColor = if (userListViewModel._filterUserType.collectAsState().value == userType) Color.White else Color.Black
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = if (selectedUserType == userType)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surface,
+                        contentColor = if (selectedUserType == userType)
+                            Color.White
+                        else MaterialTheme.colorScheme.onSurface
                     ),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(50),
                     border = BorderStroke(
-                        1.dp, MaterialTheme.colorScheme.primary
+                        1.dp,
+                        if (selectedUserType == userType) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outline
                     ),
-
-                    ) {
-                    Text(userType.label, fontSize = LocalDimens.current.textMedium.sp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = userType.label,
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -107,8 +113,13 @@ fun CustomerListScreen(
                             modifier = Modifier.fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            items(users) { item ->
-                                UserItem(user = item, onClick = {})
+                            items(users) { user ->
+                                UserItem(user = user, onClick = {
+                                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                            set("user", user)
+                                        }
+                                    navController.navigate(UserDest.AddUser.route)
+                                })
                                 Spacer(modifier = Modifier.padding(4.dp))
                             }
 
@@ -116,13 +127,17 @@ fun CustomerListScreen(
                     }
                 }
 
-                ApiResult.Empty -> TODO()
+                ApiResult.Empty -> {}
             }
 
             FloatingActionButton(
                 modifier = Modifier.align(Alignment.BottomEnd), onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                            set("user", null)
+                        }
                     navController.navigate(UserDest.AddUser.route)
-                }, shape = CircleShape
+                }, shape = CircleShape,
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
