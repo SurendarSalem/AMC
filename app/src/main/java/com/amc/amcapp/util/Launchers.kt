@@ -33,7 +33,7 @@ fun cameraLauncher(
         if (success && cameraImagePath != null) {
             val file = File(cameraImagePath)
             val fixedBitmap = loadBitmapFromFile(file)
-            val resizedBitmap = resizeBitmap(fixedBitmap, 600, 600)
+            val resizedBitmap = resizeBitmap(fixedBitmap, 300, 300)
             onImageCaptured(resizedBitmap)
             file.delete()
         }

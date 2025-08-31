@@ -38,6 +38,12 @@ enum class UserDest(
     Equipments("equipments", "Equipments", Icons.Default.SportsGymnastics)
 }
 
+enum class GymDest(
+    val route: String, val label: String, val icon: ImageVector, val badge: String? = null
+) {
+    AddEquipment("customer/addEquipment", "Add Equipment", Icons.Default.Add)
+}
+
 enum class BottomDest(val route: String, val label: String, val icon: ImageVector) {
     Amc("amc", "AMC", Icons.AutoMirrored.Filled.List),
     Services(

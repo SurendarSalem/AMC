@@ -141,9 +141,7 @@ fun AppImagePicker(
         } else {
             // Fallback: load from URL if provided
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl)
-                    .crossfade(true)
+                model = ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true)
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,

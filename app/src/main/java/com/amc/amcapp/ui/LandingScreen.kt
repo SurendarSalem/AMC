@@ -55,6 +55,7 @@ import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.screens.ServiceScreen
 import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
+import com.amc.amcapp.ui.screens.gym.equipment.AddEquipmentScreen
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.viewmodel.LandingViewModel
 import kotlinx.coroutines.launch
@@ -89,8 +90,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
     var menuClick: () -> Unit by remember { mutableStateOf({}) }
 
     ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
+        drawerState = drawerState, drawerContent = {
             ModalDrawerSheet {
                 val user = landingViewModel.user
                 DrawerHeader(user)
@@ -98,8 +98,9 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                 topDestinations.forEach { dest ->
                     NavigationDrawerItem(
                         label = { Text(dest.label) },
-                        selected = currentDestination(navController)?.route == dest.route
-                                || currentDestination(navController)?.route?.contains(dest.route + "/") == true,
+                        selected = currentDestination(navController)?.route == dest.route || currentDestination(
+                            navController
+                        )?.route?.contains(dest.route + "/") == true,
                         onClick = {
                             scope.launch { drawerState.close() }
                             try {
@@ -115,8 +116,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                             }
                         },
                         icon = { Icon(dest.icon, contentDescription = dest.label) },
-                        badge = dest.badge?.let { { Badge { Text(it) } } }
-                    )
+                        badge = dest.badge?.let { { Badge { Text(it) } } })
                 }
 
                 HorizontalDivider(
@@ -135,8 +135,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                                 val intent = Intent(context, MainActivity::class.java)
                                 context.startActivity(intent)
                             }
-                        },
-                    verticalAlignment = Alignment.CenterVertically
+                        }, verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Logout,
@@ -146,8 +145,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                     Text("Logout")
                 }
             }
-        }
-    ) {
+        }) {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -163,17 +161,17 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Open drawer")
                         }
-                    }
-                )
-            }
-        ) { innerPadding ->
+                    })
+            }) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = DrawerDest.Home.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
                 val menuItems: List<MenuItem> = listOf(
-                    MenuItem("pending_complaints", "Pending Complaints", Icons.Default.PendingActions),
+                    MenuItem(
+                        "pending_complaints", "Pending Complaints", Icons.Default.PendingActions
+                    ),
                     MenuItem("create_schedule", "Create Schedule", Icons.Default.Schedule),
                     MenuItem("today_amcs", "Today AMCs", Icons.Default.Today),
                     MenuItem("service_report", "Generate Report", Icons.Default.FilePresent)
@@ -192,13 +190,35 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                 }
 
                 composable(UserDest.Equipments.route) {
-                    EquipmentsListScreen(navController)
+                    val user =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
+
+                    user?.let {
+                        EquipmentsListScreen(
+                            navController = navController, user = it
+                        )
+                    }
+                }
+
+                composable(GymDest.AddEquipment.route) {
+                    val user =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
+
+                    user?.let {
+                        AddEquipmentScreen(
+                            navController = navController,
+                            user = it,
+                            onMenuUpdated = { enabled, icon, onClick ->
+                                menuEnabled = enabled
+                                menuIcon = icon
+                                menuClick = onClick
+                            })
+                    }
                 }
 
                 composable(UserDest.AddUser.route) {
-                    val user = navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.get<User>("user")
+                    val user =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
 
                     AddUserScreen(
                         navController = navController,
@@ -207,8 +227,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                             menuEnabled = enabled
                             menuIcon = icon
                             menuClick = onClick
-                        }
-                    )
+                        })
                 }
             }
         }

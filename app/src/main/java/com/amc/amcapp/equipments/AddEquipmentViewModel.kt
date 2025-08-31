@@ -1,53 +1,99 @@
 package com.amc.amcapp.equipments
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amc.amcapp.Complaint
-import com.amc.amcapp.ComplaintRepository
 import com.amc.amcapp.Equipment
+import com.amc.amcapp.EquipmentType
+import com.amc.amcapp.model.User
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.ApiResult
+import com.amc.amcapp.util.ImageUtils
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
+
+data class AddEquipmentState(
+    val id: String = "",
+    val gymId: String = "",
+    val name: String = "",
+    val type: String = "",
+    val imageUrl: String = "",
+    val description: String = "",
+    val bitmap: Bitmap? = null,
+    val equipmentType: EquipmentType? = null,
+    val availableComplaints: List<Complaint> = emptyList(),
+    @Exclude val addedComplaints: List<Complaint> = emptyList()
+)
+
+fun AddEquipmentState.toEquipment(): Equipment {
+    return Equipment(
+        id = id,
+        gymId = gymId,
+        name = name,
+        type = type,
+        imageUrl = imageUrl,
+        description = description,
+        equipmentType = equipmentType,
+        addedComplaints = addedComplaints
+    )
+}
+
+
 class AddEquipmentViewModel(
-    private val equipmentsRepository: EquipmentsRepository,
-    private val complaintRepository: ComplaintRepository
+    private val equipmentsRepository: IEquipmentsRepository
 ) : ViewModel() {
     private val _addEquipmentState: MutableStateFlow<ApiResult<Equipment>> =
-        MutableStateFlow(ApiResult.Loading)
+        MutableStateFlow(ApiResult.Empty)
     val addEquipmentState = _addEquipmentState.asStateFlow()
-
-    private val _equipmentState = MutableStateFlow(Equipment())
+    private var _equipmentState = MutableStateFlow(AddEquipmentState())
     val equipmentState = _equipmentState.asStateFlow()
-
-    private val _newComplaint = MutableStateFlow(Complaint())
-    val newComplaint = _newComplaint.asStateFlow()
-
-    private val _image: MutableStateFlow<String?> = MutableStateFlow(null)
-    val image = _image.asStateFlow()
-
     var notifyState = MutableSharedFlow<NotifyState>()
+    val errorMessage = MutableStateFlow<String>("")
 
-    private val _complaintsState: MutableStateFlow<List<Complaint>> = MutableStateFlow(emptyList())
-    val complaintsState = _complaintsState.asStateFlow()
 
-    suspend fun addEquipment(equipment: Equipment) {
-        withContext(Dispatchers.Main) {
-            _addEquipmentState.value = ApiResult.Loading
+    suspend fun uploadBytesToFirebase(bytes: ByteArray, pathPrefix: String = "images"): String =
+        withContext(Dispatchers.IO) {
+            val storage = Firebase.storage
+            val fileName = "$pathPrefix/${UUID.randomUUID()}.jpg"
+            val ref = storage.reference.child(fileName)
+
+            ref.putBytes(bytes).await()
+            ref.downloadUrl.await().toString()
         }
-        equipmentsRepository.addEquipment(equipment).collect { result ->
-            notifyState.emit(NotifyState.ShowToast("Added Gym Successfully!"))
-            _addEquipmentState.value = result
+
+    fun addEquipmentToFirebase() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _equipmentState.value.bitmap?.let {
+                _addEquipmentState.value = ApiResult.Loading
+                val equipment = _equipmentState.value.toEquipment()
+                val bytes = ImageUtils.bitmapToByteArray(it)
+                val imageUrl = uploadBytesToFirebase(bytes)
+                if (!imageUrl.isEmpty()) {
+                    equipmentsRepository.addEquipment(equipment).collect { result ->
+                        if (result is ApiResult.Success) {
+                            notifyState.tryEmit(NotifyState.ShowToast("Equipment added successfully!"))
+                        } else if (result is ApiResult.Error) {
+                            notifyState.tryEmit(NotifyState.ShowToast(result.message))
+                        }
+                        _addEquipmentState.value = result
+                    }
+                } else {
+                    notifyState.tryEmit(NotifyState.ShowToast("Image uploading failed!"))
+                }
+            } ?: run {
+                errorMessage.value = "Please upload image"
+            }
         }
     }
 
@@ -55,49 +101,40 @@ class AddEquipmentViewModel(
         return username.isNotEmpty() && username.length > 4 && password.isNotEmpty() && password.length >= 8
     }
 
-    fun onNameChange(name: String) {
-        _equipmentState.update { it.copy(name = name) }
+    fun onNameChanged(name: String) {
+        _equipmentState.value = _equipmentState.value.copy(name = name)
     }
 
-    fun getAllComplaints() {
-        viewModelScope.launch {
-            try {
-                val complaints = complaintRepository.getAllComplaints()
-                _complaintsState.value = complaints
-            } catch (e: Exception) {
-                notifyState.emit(NotifyState.ShowToast("Failed to load complaints"))
-            }
-        }
+    fun onDescriptionChanged(description: String) {
+        _equipmentState.value = _equipmentState.value.copy(description = description)
     }
 
-
-    fun onDescriptionChange(description: String) {
-        _equipmentState.update { it.copy(description = description) }
+    fun onImageUrlChanged(userType: String) {
+        _equipmentState.value = _equipmentState.value.copy(imageUrl = userType)
     }
 
-    suspend fun uploadBytesToFirebase(bytes: ByteArray, pathPrefix: String = "images"): String =
-        withContext(Dispatchers.IO) {
-            val storage = Firebase.storage
-            val fileName = "$pathPrefix/${UUID.randomUUID()}.jpg"
-            val ref = storage.reference.child(fileName)
-            val uploadTask = ref.putBytes(bytes)
-            val taskSnapshot =
-                uploadTask.await()
-            val downloadUrl = ref.downloadUrl.await()
-            downloadUrl.toString()
-        }
-
-    fun onComplaintAdded() {
-        _complaintsState.value = _complaintsState.value + _newComplaint.value
+    override fun onCleared() {
+        super.onCleared()
     }
 
-    fun onComplaintRemoved(complaint: Complaint) {
-        _complaintsState.value = _complaintsState.value - complaint
+    fun onBitmapChanged(bitmap: Bitmap?) {
+        _equipmentState.value = _equipmentState.value.copy(bitmap = bitmap)
     }
 
-    fun onComplaintUpdated(name: String) {
-        _newComplaint.update { it.copy(name = name) }
+    fun preFillDetails(equipment: Equipment) {
+        _equipmentState.value = AddEquipmentState(
+            id = equipment.id,
+            gymId = equipment.gymId,
+            description = equipment.description,
+            type = equipment.type,
+            imageUrl = equipment.imageUrl,
+            addedComplaints = equipment.addedComplaints
+        )
     }
 
-
+    fun updateUser(user: User) {
+        _equipmentState.value = _equipmentState.value.copy(
+            gymId = user.firebaseId
+        )
+    }
 }

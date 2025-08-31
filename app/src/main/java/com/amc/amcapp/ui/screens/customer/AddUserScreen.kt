@@ -2,7 +2,6 @@ package com.amc.amcapp.ui.screens.customer
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,13 +41,9 @@ import org.koin.compose.viewmodel.koinViewModel
 fun AddUserScreen(
     navController: NavController,
     user: User? = null,
+    addUserViewModel: AddUserViewModel = koinViewModel(),
     onMenuUpdated: (Boolean, ImageVector, () -> Unit) -> Unit
 ) {
-
-    val parentEntry = remember(navController) {
-        navController.getBackStackEntry("customer")
-    }
-    val addUserViewModel: AddUserViewModel = koinViewModel(viewModelStoreOwner = parentEntry)
     val addUserResult by addUserViewModel.addUserUiState.collectAsState()
     val userState by addUserViewModel.addUserState.collectAsState()
     val scope = rememberCoroutineScope()
@@ -105,6 +100,7 @@ fun AddUserScreen(
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 AnimatedContent(
+                    modifier = Modifier.align(Alignment.TopCenter),
                     targetState = isEditEnabled.value, transitionSpec = {
                         fadeIn(tween(300)) + slideInVertically { it } togetherWith fadeOut(
                             tween(
@@ -133,6 +129,9 @@ fun AddUserScreen(
                     Button(
                         modifier = Modifier.align(Alignment.TopEnd),
                         onClick = {
+                            navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                set("user", user as User)
+                            }
                             navController.navigate(UserDest.Equipments.route) {
                                 launchSingleTop = true
                                 restoreState = true
@@ -260,93 +259,6 @@ fun AddUserScreen(
                     .padding(16.dp)
                     .align(Alignment.Center)
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun AnimatedSectionCard(
-    title: String,
-    icon: ImageVector,
-    initiallyExpanded: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    var expanded by remember { mutableStateOf(initiallyExpanded) }
-
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
-        shape = MaterialTheme.shapes.large,
-        onClick = { expanded = !expanded }) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                }
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Expand/Collapse"
-                )
-            }
-
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandVertically(animationSpec = tween(400)) + fadeIn(),
-                exit = shrinkVertically(animationSpec = tween(400)) + fadeOut()
-            ) {
-                Column(modifier = Modifier.padding(top = 12.dp)) {
-                    content()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RoleSelectionSection(
-    userState: AddUserState, viewModel: AddUserViewModel, isEditEnabled: Boolean
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .alpha(if (isEditEnabled) 1f else 0.6f) // dim when read-only
-    ) {
-        Text(
-            "I am a:",
-            modifier = Modifier.padding(bottom = 8.dp),
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontSize = 18.sp, fontWeight = FontWeight.Bold
-            )
-        )
-
-        // filter out ADMIN as in your previous code
-        UserType.entries.filter { it != UserType.ADMIN }.forEach { role ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = isEditEnabled) { viewModel.onRoleChanged(role) }
-                    .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = (userState.userType == role),
-                    onClick = { viewModel.onRoleChanged(role) },
-                    enabled = isEditEnabled
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = role.label, style = MaterialTheme.typography.bodyMedium
-                )
-            }
         }
     }
 }

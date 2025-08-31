@@ -9,6 +9,7 @@ import com.amc.amcapp.data.UserRepository
 import com.amc.amcapp.data.datastore.PreferenceHelper
 import com.amc.amcapp.equipments.AddEquipmentViewModel
 import com.amc.amcapp.equipments.EquipmentsRepository
+import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.gym.AddGymViewModel
 import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.gym.GymRepository
@@ -44,9 +45,7 @@ val appModule = module {
     }
     viewModel {
         LandingViewModel(
-            authRepository = get(),
-            preferenceHelper = get(),
-            userRepository = get()
+            authRepository = get(), preferenceHelper = get(), userRepository = get()
         )
     }
 
@@ -55,11 +54,11 @@ val appModule = module {
     single<IUserRepository> { UserRepository(androidContext(), get()) }
     single { ComplaintRepository(get()) }
     single { Firebase.firestore }
-    single { EquipmentsRepository(get()) }
+    single<IEquipmentsRepository> { EquipmentsRepository(get()) }
     single { GymRepository(get()) }
     viewModel { EquipmentsListViewModel(get()) }
     viewModel { AddGymViewModel(get()) }
-    viewModel { AddEquipmentViewModel(get(), get()) }
+    viewModel { AddEquipmentViewModel(get()) }
     viewModel { AMCListViewModel(get()) }
     viewModel { ForgotPasswordViewModel(get()) }
     viewModel { UserListViewModel(get()) }

@@ -6,6 +6,7 @@ import com.amc.amcapp.Equipment
 import com.amc.amcapp.Gym
 import com.amc.amcapp.Location
 import com.amc.amcapp.equipments.EquipmentsRepository
+import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.ApiResult
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class EquipmentsListViewModel(private val equipmentsRepository: EquipmentsRepository) :
+class EquipmentsListViewModel(private val equipmentsRepository: IEquipmentsRepository) :
     ViewModel() {
     private val _equipmentsListState: MutableStateFlow<ApiResult<List<Equipment>>> =
         MutableStateFlow(ApiResult.Loading)

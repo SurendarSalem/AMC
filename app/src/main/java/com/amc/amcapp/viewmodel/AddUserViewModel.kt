@@ -5,14 +5,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.data.IUserRepository
-import com.amc.amcapp.model.GymOwner
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AuthResult
 import com.amc.amcapp.util.ImageUtils
-import com.amc.amcapp.util.ImageUtils.loadBitmapFromUrl
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +39,7 @@ data class AddUserState(
 
 fun AddUserState.toUser(): User {
     return if (userType == UserType.GYM_OWNER) {
-        GymOwner(
+        User(
             firebaseId = firebaseId,
             email = email,
             name = name,
@@ -183,7 +181,7 @@ class AddUserViewModel(
             name = user.name,
             userType = user.userType,
             imageUrl = user.imageUrl,
-            gymName = if (user is GymOwner) user.address else "",
+            gymName = if (user is User) user.address else "",
             phoneNumber = user.phoneNumber,
             address = user.address
         )

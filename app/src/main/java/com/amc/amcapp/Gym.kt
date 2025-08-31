@@ -40,8 +40,8 @@ data class Equipment(
     val type: String,
     val imageUrl: String = "",
     val description: String = "",
-    val availableComplaints: List<Complaint>,
-    @Exclude val addedComplaints: List<Complaint>
+    val equipmentType: EquipmentType?,
+    val addedComplaints: List<Complaint> = emptyList()
 ) {
     constructor() : this(
         id = "",
@@ -50,9 +50,13 @@ data class Equipment(
         type = "",
         imageUrl = "",
         description = "",
-        availableComplaints = emptyList(),
+        equipmentType = null,
         addedComplaints = emptyList()
     )
+}
+
+enum class EquipmentType(label: String) {
+    CARDIO("Cardio"), CHEST("Chest"), DUMBBELL("Dumbbell")
 }
 
 data class Service(
@@ -66,13 +70,10 @@ data class Service(
 )
 
 data class Complaint(
-    val id: String, var name: String="Surendar", val description: String, val price: Double
+    val id: String, var name: String = "Surendar", val description: String, val price: Double
 ) {
     constructor() : this(
-        id = "",
-        name = "Surendar",
-        description = "",
-        price = 0.0
+        id = "", name = "Surendar", description = "", price = 0.0
     )
 }
 

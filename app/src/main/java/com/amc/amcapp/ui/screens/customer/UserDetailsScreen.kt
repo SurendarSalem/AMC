@@ -32,17 +32,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.amc.amcapp.model.GymOwner
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
-import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppProgressBar
 import com.amc.amcapp.ui.AppTextField
 import com.amc.amcapp.ui.PhoneNumberField
 import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.AppImagePicker
-import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.util.openAppSettings
 import com.amc.amcapp.viewmodel.UserDetailsViewModel
 import kotlinx.coroutines.launch
@@ -114,7 +111,7 @@ fun UserDetailsScreen(
                 onValueChange = userDetailsViewModel::onPhoneNumberChanged,
                 label = "Phone  Number"
             )
-            if (user is GymOwner) {
+            if (user is User) {
                 AppTextField(
                     value = userDetails.gymName,
                     onValueChange = userDetailsViewModel::onPhoneNumberChanged,

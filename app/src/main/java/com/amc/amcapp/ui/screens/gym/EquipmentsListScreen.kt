@@ -1,9 +1,14 @@
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,68 +20,30 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.gym.EquipmentsListViewModel
-import com.amc.amcapp.ui.ApiResult
+import com.amc.amcapp.model.User
+import com.amc.amcapp.ui.GymDest
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun EquipmentsListScreen(
     navController: NavController,
+    user: User,
     equipmentsListViewModel: EquipmentsListViewModel = koinViewModel()
 ) {
     val equipmentsListState by equipmentsListViewModel.equipmentsListState.collectAsState()
 
-    /*when (val state = equipmentsListState) {
-        is ApiResult.Success -> {
-            val equipmentsList = state.data
-            if (equipmentsList.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "No equipments found",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        FloatingActionButton(
+            modifier = Modifier.align(Alignment.BottomEnd), onClick = {
+                navController.currentBackStackEntry?.savedStateHandle?.apply {
+                    set("user", user)
                 }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 150.dp), // responsive grid
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(equipmentsList) { equipment ->
-                        EquipmentItem(equipment = equipment)
-                    }
-                }
-            }
+                navController.navigate(GymDest.AddEquipment.route)
+            }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add")
         }
-
-        is ApiResult.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Error: ${state.message}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-
-        else -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Loading...", style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-    }*/
+    }
 }
 
 @Composable
@@ -92,8 +59,7 @@ private fun EquipmentItem(equipment: Equipment) {
         )
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
             Text(
                 text = equipment.name,

@@ -17,22 +17,6 @@ open class User(
     open var address: String = ""
 ) : Parcelable
 
-@Parcelize
-class GymOwner(
-    override var firebaseId: String = "",
-    override var email: String = "",
-    override var password: String = "",
-    override var confirmPassword: String = "",
-    override var name: String = "",
-    override var userType: UserType = UserType.GYM_OWNER,
-    override var imageUrl: String = "",
-    override var phoneNumber: String = "",
-    override var address: String = ""
-
-) : User(
-    firebaseId, email, password, confirmPassword, name, userType, imageUrl, phoneNumber, address
-)
-
 
 enum class UserType(val label: String) {
     ADMIN("Admin"), GYM_OWNER("Gym Owner"), CUSTOMER("Customer"), TECHNICIAN("Technician"), SALES_PERSON(
