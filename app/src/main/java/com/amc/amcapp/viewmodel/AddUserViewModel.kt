@@ -15,6 +15,7 @@ import com.amc.amcapp.util.ImageUtils
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -120,6 +121,28 @@ class AddUserViewModel(
         if (user != null) {
             notifyState.emit(NotifyState.ShowToast("User added successfully"))
         } else {
+            notifyState.emit(NotifyState.ShowToast("Unable to add the User"))
+        }
+        return user
+    }
+
+    suspend fun updateUserToFirebase(user: User): User? {
+        _addUserUiState.value = ApiResult.Loading
+        addUserState.value.bitmap?.let {
+            val bytes = ImageUtils.bitmapToByteArray(it)
+            val imageUrl = uploadBytesToFirebase(bytes)
+            user.imageUrl = imageUrl
+        }
+        val user = userRepository.addUserToFirebase(user)
+        if (user != null) {
+            _addUserUiState.value = ApiResult.Success(user)
+            notifyState.emit(NotifyState.ShowToast("User updated successfully"))
+            delay(300)
+            notifyState.emit(
+                NotifyState.LaunchActivity
+            )
+        } else {
+            _addUserUiState.value = ApiResult.Error("Unable to update the User")
             notifyState.emit(NotifyState.ShowToast("Unable to add the User"))
         }
         return user

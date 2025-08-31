@@ -33,6 +33,7 @@ import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.util.openAppSettings
 import com.amc.amcapp.viewmodel.AddUserState
 import com.amc.amcapp.viewmodel.AddUserViewModel
+import com.amc.amcapp.viewmodel.toUser
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.viewmodel.koinViewModel
@@ -247,7 +248,16 @@ fun AddUserScreen(
 
             // 🔹 Action button
             Button(
-                onClick = { scope.launch { addUserViewModel.createUser() } },
+                onClick = {
+                    scope.launch {
+                        if (!isEditEnabled.value) {
+                            addUserViewModel.createUser()
+                        } else {
+                            val user = userState.toUser()
+                            addUserViewModel.updateUserToFirebase(user)
+                        }
+                    }
+                },
                 enabled = isEditEnabled.value,
                 modifier = Modifier
                     .fillMaxWidth()

@@ -116,9 +116,9 @@ fun CustomerListScreen(
                             items(users) { user ->
                                 UserItem(user = user, onClick = {
                                     navController.currentBackStackEntry?.savedStateHandle?.apply {
-                                            set("user", user)
-                                        }
-                                    navController.navigate(UserDest.AddUser.route)
+                                        set("user", user)
+                                    }
+                                    navController.navigate(UserDest.EditUser.route)
                                 })
                                 Spacer(modifier = Modifier.padding(4.dp))
                             }
@@ -133,8 +133,8 @@ fun CustomerListScreen(
             FloatingActionButton(
                 modifier = Modifier.align(Alignment.BottomEnd), onClick = {
                     navController.currentBackStackEntry?.savedStateHandle?.apply {
-                            set("user", null)
-                        }
+                        set("user", null)
+                    }
                     navController.navigate(UserDest.AddUser.route)
                 }, shape = CircleShape,
                 containerColor = MaterialTheme.colorScheme.primary

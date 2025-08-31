@@ -35,6 +35,8 @@ enum class UserDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
     AddUser("customer/addUser", "Add User", Icons.Default.Add),
+
+    EditUser("customer/editUser", "Edit User", Icons.Default.Add),
     Equipments("equipments", "Equipments", Icons.Default.SportsGymnastics)
 }
 

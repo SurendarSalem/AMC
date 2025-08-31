@@ -185,7 +185,9 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                 )
 
                 composable(DrawerDest.Home.route) {
-                    EqualSizeMenuGridScreen(items = menuItems, onClick = { })
+                    EqualSizeMenuGridScreen(items = menuItems, onClick = {
+                        navController.navigate(DrawerDest.Services.route)
+                    })
                 }
 
                 composable(DrawerDest.Services.route) {
@@ -225,6 +227,20 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                 }
 
                 composable(UserDest.AddUser.route) {
+                    val user =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
+
+                    AddUserScreen(
+                        navController = navController,
+                        user = user,
+                        onMenuUpdated = { enabled, icon, onClick ->
+                            menuEnabled = enabled
+                            menuIcon = icon
+                            menuClick = onClick
+                        })
+                }
+
+                composable(UserDest.EditUser.route) {
                     val user =
                         navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
 
