@@ -17,8 +17,9 @@
         android:name=".AmcApp"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:icon="@drawable/red_gym"
+        android:label="AMC"
+        android:roundIcon="@drawable/red_gym"
         android:supportsRtl="true"
         android:theme="@style/Theme.AMC">   <!-- ✅ Normal theme -->
 

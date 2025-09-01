@@ -143,6 +143,7 @@ class AddUserViewModel(
             )
         } else {
             _addUserUiState.value = ApiResult.Error("Unable to update the User")
+            delay(300)
             notifyState.emit(NotifyState.ShowToast("Unable to add the User"))
         }
         return user

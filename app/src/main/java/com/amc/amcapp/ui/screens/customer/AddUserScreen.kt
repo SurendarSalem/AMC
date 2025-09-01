@@ -34,6 +34,7 @@ import com.amc.amcapp.util.openAppSettings
 import com.amc.amcapp.viewmodel.AddUserState
 import com.amc.amcapp.viewmodel.AddUserViewModel
 import com.amc.amcapp.viewmodel.toUser
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.viewmodel.koinViewModel
@@ -78,6 +79,7 @@ fun AddUserScreen(
             addUserViewModel.notifyState.collectLatest { message ->
                 when (message) {
                     is NotifyState.ShowToast -> {
+                        delay(300)
                         showSnackBar(scope, snackBarHostState, message.message)
                     }
 
@@ -87,7 +89,10 @@ fun AddUserScreen(
                         }
                     }
 
-                    NotifyState.LaunchActivity -> navController.popBackStack()
+                    NotifyState.LaunchActivity -> {
+                        delay(300)
+                        navController.popBackStack()
+                    }
                 }
             }
         }
@@ -250,7 +255,7 @@ fun AddUserScreen(
             Button(
                 onClick = {
                     scope.launch {
-                        if (!isEditEnabled.value) {
+                        if (user == null) {
                             addUserViewModel.createUser()
                         } else {
                             val user = userState.toUser()
@@ -280,5 +285,9 @@ fun AddUserScreen(
                     .align(Alignment.Center)
             )
         }
+
+        SnackbarHost(
+            hostState = snackBarHostState, modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
