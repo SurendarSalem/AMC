@@ -28,8 +28,8 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
-        splashScreen.setKeepOnScreenCondition { keepSplash }
         super.onCreate(savedInstanceState)
+        splashScreen.setKeepOnScreenCondition { keepSplash }
         enableEdgeToEdge()
         actionBar?.hide()
 

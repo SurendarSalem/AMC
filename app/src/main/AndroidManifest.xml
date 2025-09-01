@@ -1,10 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -21,41 +19,35 @@
         android:label="AMC"
         android:roundIcon="@drawable/red_gym"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AMC">   <!-- ✅ Normal theme -->
+        android:theme="@style/Theme.AMC">
 
+        <!-- File provider (keep as is) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.amc.amcapp.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
 
-
+        <!-- ✅ MainActivity handles splash + is the launcher -->
         <activity
-            android:name=".ui.SplashActivity"
+            android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.App.Starting"> <!-- ✅ Splash theme only here -->
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".MainActivity"
-            android:theme="@style/Theme.AMC"
-            tools:targetApi="26" />
-
+        <!-- Other activities use the normal app theme -->
         <activity
             android:name=".ui.LandingActivity"
             android:theme="@style/Theme.AMC"
             tools:targetApi="26" />
 
     </application>
-
-
 </manifest>

@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
 
-    <!-- Splash background color -->
-    <item android:drawable="@color/white" />
+    <!-- Blue circle -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M54,0a54,54 0 1,0 0,108a54,54 0 1,0 0,-108" />
 
-    <!-- Centered fixed-size logo -->
-    <item android:drawable="@drawable/splash_logo" />
-
-</layer-list>
+    <!-- White dumbbell -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,50h48v8h-48zM24,44h6v20h-6zM78,44h6v20h-6z" />
+</vector>
