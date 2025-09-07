@@ -2,6 +2,7 @@ package com.amc.amcapp.di
 
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.ComplaintRepository
+import com.amc.amcapp.IComplaintRepository
 import com.amc.amcapp.data.AmcRepository
 import com.amc.amcapp.data.IAmcRepository
 import com.amc.amcapp.data.IUserRepository
@@ -54,11 +55,12 @@ val appModule = module {
     single<IUserRepository> { UserRepository(androidContext(), get()) }
     single { ComplaintRepository(get()) }
     single { Firebase.firestore }
+    single<IComplaintRepository> { ComplaintRepository(get()) }
     single<IEquipmentsRepository> { EquipmentsRepository(get()) }
     single { GymRepository(get()) }
     viewModel { EquipmentsListViewModel(get()) }
     viewModel { AddGymViewModel(get()) }
-    viewModel { AddEquipmentViewModel(get()) }
+    viewModel { AddEquipmentViewModel(get(), get()) }
     viewModel { AMCListViewModel(get()) }
     viewModel { ForgotPasswordViewModel(get()) }
     viewModel { UserListViewModel(get()) }

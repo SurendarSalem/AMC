@@ -1,5 +1,6 @@
 package com.amc.amcapp.ui
 
+import android.widget.CheckBox
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
@@ -33,9 +34,11 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -62,10 +65,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.amc.amcapp.Complaint
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.EquipmentType
 import com.amc.amcapp.equipments.AddEquipmentState
 import com.amc.amcapp.equipments.AddEquipmentViewModel
+import com.amc.amcapp.equipments.ComplaintUiState
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.BubbleProgressBar
@@ -166,11 +171,12 @@ fun showSnackBar(
     snackBarHostState: SnackbarHostState,
     message: String,
     actionLabel: String? = null,
+    snackBarDuration: SnackbarDuration = SnackbarDuration.Long,
     onActionClicked: () -> Unit = {}
 ) {
     scope.launch {
         snackBarHostState.showSnackbar(
-            message = message, duration = SnackbarDuration.Long, actionLabel = actionLabel
+            message = message, duration = snackBarDuration, actionLabel = actionLabel
         ).let { result ->
             when (result) {
                 SnackbarResult.ActionPerformed -> {
@@ -348,22 +354,15 @@ fun RoleSelectionSection(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun TopErrorBanner(
-    errorMessage: String?,
-    modifier: Modifier = Modifier,
-    fontSize: Float = 16f
+    errorMessage: String?, modifier: Modifier = Modifier, fontSize: Float = 16f
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
         AnimatedVisibility(
-            visible = !errorMessage.isNullOrEmpty(),
-            enter = slideInVertically(
-                initialOffsetY = { -it },
-                animationSpec = tween(durationMillis = 300)
-            ) + fadeIn(animationSpec = tween(300)),
-            exit = slideOutVertically(
-                targetOffsetY = { -it },
-                animationSpec = tween(durationMillis = 300)
-            ) + fadeOut(animationSpec = tween(300)),
-            modifier = Modifier.align(Alignment.TopCenter)
+            visible = !errorMessage.isNullOrEmpty(), enter = slideInVertically(
+                initialOffsetY = { -it }, animationSpec = tween(durationMillis = 300)
+            ) + fadeIn(animationSpec = tween(300)), exit = slideOutVertically(
+                targetOffsetY = { -it }, animationSpec = tween(durationMillis = 300)
+            ) + fadeOut(animationSpec = tween(300)), modifier = Modifier.align(Alignment.TopCenter)
         ) {
             Surface(
                 color = MaterialTheme.colorScheme.errorContainer,
@@ -375,11 +374,32 @@ fun TopErrorBanner(
                     text = errorMessage ?: "",
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     fontSize = fontSize.sp,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 )
             }
         }
     }
+}
+
+
+@Composable
+fun ComplaintItem(
+    complaintUiState: ComplaintUiState,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    ListItem(
+        headlineContent = {
+            Text(text = complaintUiState.complaint.name)
+        },
+        trailingContent = {
+            Checkbox(
+                checked = complaintUiState.isSelected,
+                onCheckedChange = onCheckedChange
+            )
+        },
+        modifier = Modifier.clickable {
+            onCheckedChange(!complaintUiState.isSelected)
+        }
+    )
 }
 

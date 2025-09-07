@@ -40,10 +40,13 @@ import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.AnimatedSectionCard
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppTextField
+import com.amc.amcapp.ui.ComplaintItem
+import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.AppImagePicker
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.util.openAppSettings
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -59,6 +62,8 @@ fun AddEquipmentScreen(
 ) {
     val addEquipmentState by addEquipmentViewModel.addEquipmentState.collectAsState()
     val equipmentState by addEquipmentViewModel.equipmentState.collectAsState()
+    val allComplaints by addEquipmentViewModel.allComplaints.collectAsState()
+    val errorMessage by addEquipmentViewModel.errorMessage.collectAsState()
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackBarHostState = remember { SnackbarHostState() }
@@ -118,7 +123,11 @@ fun AddEquipmentScreen(
                     modifier = Modifier.align(Alignment.TopCenter),
                     targetState = isEditEnabled.value,
                     transitionSpec = {
-                        fadeIn(tween(300)) + slideInVertically { it } togetherWith fadeOut(tween(300)) + slideOutVertically { -it }
+                        fadeIn(tween(300)) + slideInVertically { it } togetherWith fadeOut(
+                            tween(
+                                300
+                            )
+                        ) + slideOutVertically { -it }
                     },
                     label = "HeaderTransition"
                 ) { editable ->
@@ -183,10 +192,61 @@ fun AddEquipmentScreen(
             }
 
             Spacer(Modifier.height(20.dp))
+            if (equipmentState.addedComplaints.isNotEmpty()) {
+                Text(
+                    "Added Equipment Complaints:",
+                    modifier = Modifier.align(Alignment.Start),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Column(modifier = Modifier.padding()) {
+                equipmentState.addedComplaints.forEachIndexed { index, complaintUiState ->
+                    Text(
+                        (index + 1).toString() + ". " + complaintUiState.name,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Start)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            Column {
+                AppTextField(
+                    value = "", onValueChange = {}, label = "Search Complaints", enabled = true
+                )
+                allComplaints.forEach { complaintUiState ->
+                    ComplaintItem(complaintUiState) { selected ->
+                        addEquipmentViewModel.toggleComplaintSelection(complaintUiState.complaint)
+                    }
+                }
+            }
+
+
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
 
             // Save button
             Button(
-                onClick = { scope.launch { addEquipmentViewModel.addEquipmentToFirebase() } },
+                onClick = {
+                    scope.launch {
+                        val error =
+                            addEquipmentViewModel.validate(equipment != null, equipmentState)
+                        if (error == null) {
+                            addEquipmentViewModel.addEquipmentToFirebase()
+                        } else {
+                            showSnackBar(
+                                scope,
+                                snackBarHostState,
+                                error,
+                                snackBarDuration = SnackbarDuration.Short
+                            )
+                            delay(100)
+                            scrollState.animateScrollTo(scrollState.maxValue)
+                        }
+                    }
+                },
                 enabled = isEditEnabled.value,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -199,6 +259,12 @@ fun AddEquipmentScreen(
                     fontSize = LocalDimens.current.textMedium.sp
                 )
             }
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+            SnackbarHost(
+                hostState = snackBarHostState
+            )
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+
         }
 
         // Loading indicator
@@ -209,11 +275,6 @@ fun AddEquipmentScreen(
                     .align(Alignment.Center)
             )
         }
-
-        // SnackbarHost for showing messages
-        SnackbarHost(
-            hostState = snackBarHostState, modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 

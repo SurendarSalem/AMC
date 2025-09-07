@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.model.User
@@ -94,20 +95,18 @@ fun EquipmentsListScreen(
         FloatingActionButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            onClick = {
+                .padding(16.dp), onClick = {
                 navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
-                navController.navigate(GymDest.AddEquipment.route)
-            },
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.primary
+                navController.navigate(GymDest.AddEquipment.route) {
+                    restoreState = true
+                }
+            }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add Equipment")
         }
 
         SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
+            hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }
@@ -130,8 +129,7 @@ private fun EquipmentItem(equipment: Equipment) {
             AppImagePicker(
                 imageUrl = equipment.imageUrl,
                 onImageReturned = {},
-                onErrorReturned = {}
-            )
+                onErrorReturned = {})
             Text(
                 equipment.name,
                 modifier = Modifier

@@ -15,6 +15,7 @@ import com.amc.amcapp.viewmodel.SplashState
 import com.amc.amcapp.viewmodel.SplashViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
@@ -22,13 +23,18 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: SplashViewModel by viewModel()
 
-    // 👇 control splash manually
+    private val complaintRepository: IComplaintRepository by inject()
     private var keepSplash = true
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            complaintRepository.getAllComplaints()
+        }
+
         splashScreen.setKeepOnScreenCondition { keepSplash }
         enableEdgeToEdge()
         actionBar?.hide()

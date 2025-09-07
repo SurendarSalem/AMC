@@ -68,7 +68,7 @@ data class Service(
 )
 
 data class Complaint(
-    val id: String, var name: String = "Surendar", val description: String, val price: Double
+    val id: String, var name: String = "", val description: String, val price: Double
 ) {
     constructor() : this(
         id = "", name = "Surendar", description = "", price = 0.0
