@@ -330,13 +330,13 @@ fun RoleSelectionSection(
             )
         )
 
-        // filter out ADMIN as in your previous code
         UserType.entries.filter { it != UserType.ADMIN }.forEach { role ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(enabled = isEditEnabled) { viewModel.onRoleChanged(role) }
-                    .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    .clickable(enabled = isEditEnabled) { viewModel.onRoleChanged(role) },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 RadioButton(
                     selected = (userState.userType == role),
                     onClick = { viewModel.onRoleChanged(role) },
@@ -344,8 +344,19 @@ fun RoleSelectionSection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = role.label, style = MaterialTheme.typography.bodyMedium
+                    text = role.label, fontSize = LocalDimens.current.textLarge.sp
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                if (role == UserType.GYM_OWNER && userState.userType == UserType.GYM_OWNER) {
+                    Checkbox(
+                        checked = userState.isAmcEnabled,
+                        onCheckedChange = viewModel::onAmcEnabled
+                    )
+                    Text(
+                        text = "Is AMC Enabled?", fontSize = LocalDimens.current.textMedium.sp
+                    )
+                }
+
             }
         }
     }

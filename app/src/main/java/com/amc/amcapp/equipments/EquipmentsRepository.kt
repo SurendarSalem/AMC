@@ -27,24 +27,43 @@ class EquipmentsRepository(database: FirebaseFirestore = Firebase.firestore) :
     IEquipmentsRepository {
 
     private val gymRef = database.collection("equipments")
-    override suspend fun addEquipment(equipment: Equipment): Flow<ApiResult<Equipment>> {
-        return callbackFlow {
+    override suspend fun addEquipment(equipment: Equipment): Flow<ApiResult<Equipment>> =
+        callbackFlow {
             trySend(ApiResult.Loading)
-            gymRef.add(equipment).addOnSuccessListener { documentReference ->
-                trySend(ApiResult.Success(equipment.copy(id = documentReference.id)))
-            }.addOnFailureListener { exception ->
-                trySend(ApiResult.Error(exception.message ?: "Unknown error"))
+
+            val task = if (equipment.id.isNotEmpty()) {
+                // Update existing
+                gymRef.document(equipment.id).set(equipment).addOnSuccessListener {
+                        trySend(ApiResult.Success(equipment))
+                        close() // complete flow
+                    }.addOnFailureListener { exception ->
+                        trySend(ApiResult.Error(exception.message ?: "Unknown error"))
+                        close(exception)
+                    }
+            } else {
+                // Add new
+                val ref = gymRef.document().id
+                val equipment = equipment.copy(id = ref)
+                gymRef.document(equipment.id).set(equipment).addOnSuccessListener { documentReference ->
+                        trySend(ApiResult.Success(equipment))
+                        close()
+                    }.addOnFailureListener { exception ->
+                        trySend(ApiResult.Error(exception.message ?: "Unknown error"))
+                        close(exception)
+                    }
             }
-            awaitClose { }
+
+            awaitClose { task.isComplete } // just ensures cleanup
         }
-    }
+
 
     override suspend fun getEquipments(gymId: String): Flow<ApiResult<List<Equipment>>> {
         return callbackFlow {
             trySend(ApiResult.Loading)
             gymRef.whereEqualTo("gymId", gymId).get().addOnSuccessListener { querySnapshot ->
-                val equipments =
-                    querySnapshot.documents.mapNotNull { it.toObject(Equipment::class.java) }
+                val equipments = querySnapshot.documents.mapNotNull {
+                    it.toObject(Equipment::class.java)
+                }
                 trySend(ApiResult.Success(equipments))
             }.addOnFailureListener { exception ->
                 trySend(ApiResult.Error(exception.message ?: "Unknown error"))

@@ -36,7 +36,8 @@ data class AddUserState(
     val phoneNumber: String = "",
     val address: String = "",
     val gymName: String = "",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isAmcEnabled:Boolean = false
 )
 
 fun AddUserState.toUser(): User {
@@ -230,6 +231,10 @@ class AddUserViewModel(
         _addUserState.value = _addUserState.value.copy(imageUrl = userType)
     }
 
+    fun onAmcEnabled(isAmcEnabled: Boolean) {
+        _addUserState.value = _addUserState.value.copy(isAmcEnabled = isAmcEnabled)
+    }
+
     override fun onCleared() {
         super.onCleared()
         Log.d("Surendar", "AuthViewModel cleared")
@@ -248,9 +253,10 @@ class AddUserViewModel(
             name = user.name,
             userType = user.userType,
             imageUrl = user.imageUrl,
-            gymName = if (user is User) user.address else "",
+            gymName = user.address,
             phoneNumber = user.phoneNumber,
-            address = user.address
+            address = user.address,
+            isAmcEnabled = user.isAmcEnabled
         )
     }
 }

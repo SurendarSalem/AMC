@@ -104,7 +104,6 @@ fun UserItem(
             user.userType?.let {
                 Icon(
                     imageVector = when (it) {
-                        UserType.CUSTOMER -> Icons.Default.Person
                         UserType.TECHNICIAN -> Icons.Default.HomeRepairService
                         UserType.ADMIN -> Icons.Default.Person
                         UserType.GYM_OWNER -> Icons.Default.SportsGymnastics

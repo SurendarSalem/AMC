@@ -1,0 +1,108 @@
+package com.amc.amcapp.ui.screens
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.navigation.NavHostController
+import com.amc.amcapp.Complaint
+import com.amc.amcapp.equipments.spares.Spare
+import com.amc.amcapp.equipments.spares.toUiItem
+import com.amc.amcapp.model.AMC
+import com.amc.amcapp.toUiItem
+import com.amc.amcapp.ui.SearchListScreen
+import com.amc.amcapp.ui.screens.gym.ComplaintItem
+import com.amc.amcapp.ui.screens.gym.SpareItem
+import com.amc.amcapp.viewmodel.SearchViewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
+
+@Composable
+fun ListItemScreen(navController: NavHostController) {
+    val scope = rememberCoroutineScope()
+    val key =
+        navController.previousBackStackEntry?.savedStateHandle?.get<ListTypeKey>("listTypeKey")
+            ?: return
+
+    val (table, clazz) = when (key) {
+        ListTypeKey.SPARES -> "spares" to Spare::class.java
+        ListTypeKey.COMPLAINTS -> "complaints" to Complaint::class.java
+        ListTypeKey.AMCS -> "amc" to AMC::class.java
+    }
+
+    val vm: SearchViewModel<Any> = koinViewModel { parametersOf(clazz) }
+
+    LaunchedEffect(Unit) { vm.fetchAll(table) }
+
+    SearchListScreen(
+        searchViewModel = vm, listItem = { item ->
+            when (key) {
+                ListTypeKey.SPARES -> {
+                    val handle = navController.previousBackStackEntry?.savedStateHandle
+
+                    var selectedSpares =
+                        handle?.get<List<Spare>>("selectedSpares") ?: emptyList()
+
+                    var spareUiItems by remember {
+                        mutableStateOf((item as Spare).toUiItem().apply {
+                            isSelected = selectedSpares.contains(item)
+                        })
+                    }
+                    SpareItem(spareUiItem = spareUiItems, onCheckedChanged = { isChecked ->
+                        scope.launch {
+                            selectedSpares =
+                                handle?.get<List<Spare>>("selectedSpares") ?: emptyList()
+                            spareUiItems = spareUiItems.copy(isSelected = isChecked)
+
+                            if (isChecked) {
+                                val updatedList = selectedSpares + item
+                                handle?.set("selectedSpares", updatedList)
+                            } else {
+                                val updatedList = selectedSpares - item
+                                handle?.set("selectedSpares", updatedList)
+                            }
+                        }
+                    }, onSpareClicked = { spare ->
+
+                    })
+                }
+
+                ListTypeKey.COMPLAINTS -> {
+                    val handle = navController.previousBackStackEntry?.savedStateHandle
+
+                    var selectedComplaints =
+                        handle?.get<List<Complaint>>("selectedComplaints") ?: emptyList()
+
+                    var complaintsUiItem by remember {
+                        mutableStateOf((item as Complaint).toUiItem().apply {
+                            isSelected = selectedComplaints.contains(item)
+                        })
+                    }
+                    ComplaintItem(complaintUiItem = complaintsUiItem, onCheckedChanged = { isChecked ->
+                        scope.launch {
+                            selectedComplaints =
+                                handle?.get<List<Complaint>>("selectedComplaints") ?: emptyList()
+                            complaintsUiItem = complaintsUiItem.copy(isSelected = isChecked)
+
+                            if (isChecked) {
+                                val updatedList = selectedComplaints + item
+                                handle?.set("selectedComplaints", updatedList)
+                            } else {
+                                val updatedList = selectedComplaints - item
+                                handle?.set("selectedComplaints", updatedList)
+                            }
+                        }
+                    }, onComplaintClicked = { complaintItem ->
+
+                    })
+                }
+
+                ListTypeKey.AMCS -> TODO()
+            }
+        }, errorMessage = "No items found"
+    )
+}

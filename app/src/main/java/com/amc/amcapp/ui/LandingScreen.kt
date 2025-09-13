@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,16 +51,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.amc.amcapp.Equipment
 import com.amc.amcapp.MainActivity
+import com.amc.amcapp.equipments.spares.Spare
 import com.amc.amcapp.model.User
+import com.amc.amcapp.ui.screens.ListItemScreen
+import com.amc.amcapp.ui.screens.ListTypeKey
 import com.amc.amcapp.ui.screens.ServiceScreen
 import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
 import com.amc.amcapp.ui.screens.gym.equipment.AddEquipmentScreen
+import com.amc.amcapp.ui.screens.service.AddServiceScreen
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.Avatar
 import com.amc.amcapp.viewmodel.LandingViewModel
+import com.amc.amcapp.viewmodel.SearchViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 private fun DrawerHeader(user: User?) {
@@ -213,11 +222,14 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                 composable(GymDest.AddEquipment.route) {
                     val user =
                         navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
+                    val equipment =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<Equipment>("equipment")
 
                     user?.let {
                         AddEquipmentScreen(
                             navController = navController,
                             user = it,
+                            equipment = equipment,
                             onMenuUpdated = { enabled, icon, onClick ->
                                 menuEnabled = enabled
                                 menuIcon = icon
@@ -240,6 +252,22 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                         })
                 }
 
+                composable(GymDest.AddService.route) {
+                    val equipments =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<List<Equipment>>(
+                            "equipment"
+                        )
+
+                    AddServiceScreen(
+                        navController = navController,
+                        equipments = equipments!!,
+                        onMenuUpdated = { enabled, icon, onClick ->
+                            menuEnabled = enabled
+                            menuIcon = icon
+                            menuClick = onClick
+                        })
+                }
+
                 composable(UserDest.EditUser.route) {
                     val user =
                         navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
@@ -253,6 +281,12 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
                             menuClick = onClick
                         })
                 }
+
+                composable(ListDest.ListScreen.route) { backStackEntry ->
+
+                    ListItemScreen(navController)
+                }
+
             }
         }
     }
@@ -271,6 +305,7 @@ private fun titleForDestination(dest: NavDestination?): String {
     BottomDest.entries.firstOrNull { it.route == route }?.let { return it.label }
     UserDest.entries.firstOrNull { it.route == route }?.let { return it.label }
     GymDest.entries.firstOrNull { it.route == route }?.let { return it.label }
+    ListDest.entries.firstOrNull { it.route == route }?.let { return it.label }
 
     return when {
         route.startsWith("detail/") -> "Detail"

@@ -14,12 +14,13 @@ open class User(
     open var userType: UserType? = null,
     open var imageUrl: String = "",
     open var phoneNumber: String = "",
-    open var address: String = ""
+    open var address: String = "",
+    open var isAmcEnabled: Boolean = false
 ) : Parcelable
 
 
 enum class UserType(val label: String) {
-    ADMIN("Admin"), GYM_OWNER("Gym Owner"), CUSTOMER("Customer"), TECHNICIAN("Technician"), SALES_PERSON(
+    ADMIN("Admin"), GYM_OWNER("Gym Owner"), TECHNICIAN("Technician"), SALES_PERSON(
         "Sales Person"
     )
 }

@@ -6,12 +6,12 @@ import com.amc.amcapp.Complaint
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.EquipmentType
 import com.amc.amcapp.IComplaintRepository
+import com.amc.amcapp.equipments.spares.Spare
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.util.ImageUtils
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.Exclude
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,8 +30,9 @@ data class AddEquipmentState(
     val description: String = "",
     val bitmap: Bitmap? = null,
     val equipmentType: EquipmentType? = null,
-    val availableComplaints: List<Complaint> = emptyList(),
-    @Exclude val addedComplaints: MutableList<Complaint> = mutableListOf()
+    val complaints: MutableList<Complaint> = mutableListOf(),
+    val spares: MutableList<Spare> = mutableListOf(),
+    val isForEdit: Boolean = false
 )
 
 data class ComplaintUiState(
@@ -46,7 +47,8 @@ fun AddEquipmentState.toEquipment(): Equipment {
         imageUrl = imageUrl,
         description = description,
         equipmentType = equipmentType,
-        addedComplaints = addedComplaints
+        spares = spares,
+        complaints = complaints
     )
 }
 
@@ -66,6 +68,9 @@ class AddEquipmentViewModel(
     var notifyState = MutableSharedFlow<NotifyState>(replay = 0, extraBufferCapacity = 1)
 
     val errorMessage = MutableStateFlow("")
+
+    var _spares: MutableStateFlow<List<Spare>> = MutableStateFlow(emptyList())
+    var spares = _spares.asStateFlow()
 
     val allComplaints = MutableStateFlow(
         complaintRepository.allComplaints.map {
@@ -93,36 +98,45 @@ class AddEquipmentViewModel(
      * Adds new equipment along with its image to Firebase.
      */
     suspend fun addEquipmentToFirebase() {
-        _equipmentState.value.bitmap?.let {
-            _addEquipmentState.value = ApiResult.Loading
-            val equipment = _equipmentState.value.toEquipment()
-            val bytes = ImageUtils.bitmapToByteArray(it)
-
-            val imageUrl = uploadBytesToFirebase(bytes)
-            if (imageUrl.isNotBlank()) {
-                val finalEquipment = equipment.copy(imageUrl = imageUrl)
-
-                equipmentsRepository.addEquipment(finalEquipment).collect { result ->
-                    when (result) {
-                        is ApiResult.Success -> {
-                            notifyState.emit(NotifyState.ShowToast("Equipment added successfully!"))
-                            _addEquipmentState.value = result
-                            notifyState.emit(NotifyState.LaunchActivity)
-                        }
-
-                        is ApiResult.Error -> {
-                            notifyState.emit(NotifyState.ShowToast(result.message))
-                            _addEquipmentState.value = result
-                        }
-
-                        else -> Unit
-                    }
-                }
-            } else {
-                notifyState.emit(NotifyState.ShowToast("Image uploading failed!"))
+        _addEquipmentState.value = ApiResult.Loading
+        val equipment = _equipmentState.value.toEquipment()
+        var bytes = ByteArray(0)
+        var imageUrl = ""
+        if (_equipmentState.value.isForEdit) {
+            _equipmentState.value.bitmap?.let {
+                bytes = ImageUtils.bitmapToByteArray(it)
+                imageUrl = uploadBytesToFirebase(bytes)
             }
-        } ?: run {
-            errorMessage.value = "Please upload image"
+        } else {
+            _equipmentState.value.bitmap?.let {
+                bytes = ImageUtils.bitmapToByteArray(it)
+                imageUrl = uploadBytesToFirebase(bytes)
+            } ?: run {
+                _addEquipmentState.value = ApiResult.Empty
+                return@addEquipmentToFirebase
+            }
+        }
+        if (imageUrl.isNotBlank()) {
+            val finalEquipment = equipment.copy(imageUrl = imageUrl)
+            equipmentsRepository.addEquipment(finalEquipment).collect { result ->
+                when (result) {
+                    is ApiResult.Success -> {
+                        notifyState.emit(NotifyState.ShowToast("Equipment added successfully!"))
+                        _addEquipmentState.value = result
+                        notifyState.emit(NotifyState.LaunchActivity)
+                    }
+
+                    is ApiResult.Error -> {
+                        notifyState.emit(NotifyState.ShowToast(result.message))
+                        _addEquipmentState.value = result
+                    }
+
+                    else -> Unit
+                }
+            }
+        } else {
+            _addEquipmentState.value = ApiResult.Empty
+            notifyState.emit(NotifyState.ShowToast("Image uploading failed or not available!"))
         }
     }
 
@@ -133,12 +147,13 @@ class AddEquipmentViewModel(
             value.name.isEmpty() || value.name.length < 6 -> "Name should not be empty and should be of atleast 6 characters"
             value.equipmentType == null -> "Please select the Equipment type"
             value.description.isEmpty() || value.description.length < 20 -> "Description should not be empty and should be of atleast 20 characters"
-            value.addedComplaints.isEmpty() -> "Please add some complaints"
+            value.spares.isEmpty() -> "Please add some Spares"
+            value.complaints.isEmpty() -> "Please add some complaints"
             else -> null
         }
     }
 
-    // ---------- State Updaters ---------- //
+// ---------- State Updaters ---------- //
 
     fun onNameChanged(name: String) {
         _equipmentState.value = _equipmentState.value.copy(name = name)
@@ -160,35 +175,13 @@ class AddEquipmentViewModel(
         _equipmentState.value = _equipmentState.value.copy(bitmap = bitmap)
     }
 
-    /**
-     * Manage complaints dynamically
-     */
-    fun addComplaint(complaint: Complaint) {
-        val updated = _equipmentState.value.addedComplaints.toMutableList()
-        if (!updated.contains(complaint)) updated.add(complaint)
-        _equipmentState.value = _equipmentState.value.copy(addedComplaints = updated)
+
+    fun onComplaintsChanged(complaints: List<Complaint>) {
+        _equipmentState.value = _equipmentState.value.copy(complaints = complaints.toMutableList())
     }
 
-    fun removeComplaint(complaint: Complaint) {
-        val updated = _equipmentState.value.addedComplaints.toMutableList()
-        updated.remove(complaint)
-        _equipmentState.value = _equipmentState.value.copy(addedComplaints = updated)
-    }
-
-    fun toggleComplaintSelection(complaint: Complaint) {
-        allComplaints.value = allComplaints.value.map {
-            if (it.complaint.id == complaint.id) {
-                val newSelected = !it.isSelected
-
-                // sync with addedComplaints
-                if (newSelected) addComplaint(it.complaint)
-                else removeComplaint(it.complaint)
-
-                it.copy(isSelected = newSelected)
-            } else {
-                it
-            }
-        }
+    fun onSparesChanged(spares: List<Spare>) {
+        _equipmentState.value = _equipmentState.value.copy(spares = spares.toMutableList())
     }
 
     /**
@@ -202,13 +195,9 @@ class AddEquipmentViewModel(
             description = equipment.description,
             equipmentType = equipment.equipmentType,
             imageUrl = equipment.imageUrl,
-            addedComplaints = equipment.addedComplaints.toMutableList()
+            spares = equipment.spares.toMutableList(),
+            isForEdit = true
         )
-
-        // also reflect in allComplaints
-        allComplaints.value = allComplaints.value.map {
-            it.copy(isSelected = equipment.addedComplaints.contains(it.complaint))
-        }
     }
 
     fun updateUser(user: User) {

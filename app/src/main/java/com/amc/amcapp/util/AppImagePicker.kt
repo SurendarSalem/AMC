@@ -50,7 +50,7 @@ import java.io.File
 
 @Composable
 fun AppImagePicker(
-    imageUrl: String = "", onImageReturned: (
+    imageUrl: String = "", bitmap: Bitmap? = null, onImageReturned: (
         bitmap: Bitmap?
     ) -> Unit, onErrorReturned: (error: NotifyState) -> Unit, isEditEnabled: Boolean = false
 ) {
@@ -67,6 +67,9 @@ fun AppImagePicker(
                 previewBitmap = loadBitmapFromUrl(context, imageUrl)
                 onImageReturned.invoke(previewBitmap)
             }
+        } else {
+            previewBitmap = bitmap
+            onImageReturned.invoke(previewBitmap)
         }
 
     }

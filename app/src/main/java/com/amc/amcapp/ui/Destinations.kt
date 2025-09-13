@@ -43,7 +43,9 @@ enum class UserDest(
 enum class GymDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
-    AddEquipment("customer/addEquipment", "Add Equipment", Icons.Default.Add)
+    AddEquipment("customer/addEquipment", "Add Equipment", Icons.Default.Add),
+
+    AddService("customer/addEquipment/addService", "Add Service", Icons.Default.Add)
 }
 
 enum class BottomDest(val route: String, val label: String, val icon: ImageVector) {
@@ -52,4 +54,10 @@ enum class BottomDest(val route: String, val label: String, val icon: ImageVecto
         "services", "Services", Icons.Default.SportsGymnastics
     ),
     Favorites("calendar", "Calendar", Icons.Default.CalendarToday)
+}
+
+enum class ListDest(
+    val route: String, val label: String, val icon: ImageVector, val badge: String? = null
+) {
+    ListScreen("customer/addEquipment/listScreen", "Add Item", Icons.Default.Add)
 }

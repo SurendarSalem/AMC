@@ -1,4 +1,5 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -24,10 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.model.User
@@ -50,7 +50,9 @@ fun EquipmentsListScreen(
 
     LaunchedEffect(user.firebaseId) {
         equipmentsListViewModel.preFillUserId(user.firebaseId)
-        equipmentsListViewModel.fetchEquipments(user.firebaseId)
+        if (equipmentsListViewModel.equipmentsListState.value !is ApiResult.Success) {
+            equipmentsListViewModel.fetchEquipments(user.firebaseId)
+        }
     }
 
     Box(
@@ -58,7 +60,6 @@ fun EquipmentsListScreen(
             .fillMaxSize()
             .padding(LocalDimens.current.spacingMedium.dp)
     ) {
-
         when (equipmentsListState) {
             is ApiResult.Loading -> AppLoadingBar(this@Box)
             is ApiResult.Error -> {
@@ -83,7 +84,16 @@ fun EquipmentsListScreen(
                         )
                     ) {
                         items(equipments) { equipment ->
-                            EquipmentItem(equipment)
+                            EquipmentItem(equipment, {
+                                navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("user", user)
+                                    set("equipment", equipment)
+                                }
+                                navController.navigate(GymDest.AddEquipment.route) {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            })
                         }
                     }
                 }
@@ -92,12 +102,28 @@ fun EquipmentsListScreen(
             ApiResult.Empty -> {}
         }
 
+        Button(modifier = Modifier.align(Alignment.Center), onClick = {
+            if (equipmentsListState is ApiResult.Success) {
+                val list = (equipmentsListState as ApiResult.Success<List<Equipment>>).data
+                if (list.isNotEmpty()) {
+                    navController.currentBackStackEntry?.savedStateHandle?.set("equipment", list)
+                    navController.navigate(GymDest.AddService.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            }
+        }) {
+            Text("Create Service")
+        }
+
         FloatingActionButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp), onClick = {
                 navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
                 navController.navigate(GymDest.AddEquipment.route) {
+                    launchSingleTop = true
                     restoreState = true
                 }
             }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
@@ -112,11 +138,14 @@ fun EquipmentsListScreen(
 }
 
 @Composable
-private fun EquipmentItem(equipment: Equipment) {
+private fun EquipmentItem(equipment: Equipment, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .padding(4.dp),
+            .padding(4.dp)
+            .clickable {
+                onClick()
+            },
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
