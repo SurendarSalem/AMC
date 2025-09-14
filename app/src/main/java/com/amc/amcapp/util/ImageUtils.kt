@@ -52,10 +52,14 @@ object ImageUtils {
     }
 
     fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
-        val ratio = minOf(maxWidth.toFloat() / bitmap.width, maxHeight.toFloat() / bitmap.height)
+        val ratio = minOf(
+            maxWidth.toFloat() / bitmap.width,
+            maxHeight.toFloat() / bitmap.height
+        )
         val width = (bitmap.width * ratio).toInt()
         val height = (bitmap.height * ratio).toInt()
-        return bitmap.scale(width, height)
+
+        return bitmap.scale(width, height, filter = true)
     }
 
     suspend fun bitmapToByteArray(bitmap: Bitmap, quality: Int = 90): ByteArray =

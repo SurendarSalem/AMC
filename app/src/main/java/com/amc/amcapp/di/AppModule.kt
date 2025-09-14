@@ -16,6 +16,7 @@ import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.gym.AddGymViewModel
 import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.gym.GymRepository
+import com.amc.amcapp.ui.screens.amc.AddAmcViewModel
 import com.amc.amcapp.ui.screens.amc.UserListViewModel
 import com.amc.amcapp.ui.screens.service.AddServiceViewModel
 import com.amc.amcapp.ui.screens.service.IServiceRepository
@@ -75,6 +76,7 @@ val appModule = module {
     viewModel { ForgotPasswordViewModel(get()) }
     viewModel { UserListViewModel(get()) }
     viewModel { AddUserViewModel(get(), get()) }
+    viewModel { AddAmcViewModel(get()) }
 
     factory { (clazz: Class<*>) ->
         @Suppress("UNCHECKED_CAST")
@@ -87,9 +89,9 @@ val appModule = module {
     // ViewModel factory for any type
     viewModel { (clazz: Class<*>) ->
         @Suppress("UNCHECKED_CAST")
-        SearchViewModel<Any>(
+        (SearchViewModel<Any>(
             searchRepository = get { parametersOf(clazz) }
-        ) as SearchViewModel<Any>
+        ))
     }
 }
 

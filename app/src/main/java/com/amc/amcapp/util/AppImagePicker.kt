@@ -3,6 +3,7 @@ package com.amc.amcapp.util
 import android.Manifest
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,22 +58,8 @@ fun AppImagePicker(
 
     val context = LocalContext.current
     var cameraImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
-    var previewBitmap by rememberSaveable { mutableStateOf<Bitmap?>(null) }
     var cameraImagePath by rememberSaveable { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(imageUrl) {
-        if (imageUrl.isNotEmpty()) {
-            scope.launch {
-                previewBitmap = loadBitmapFromUrl(context, imageUrl)
-                onImageReturned.invoke(previewBitmap)
-            }
-        } else {
-            previewBitmap = bitmap
-            onImageReturned.invoke(previewBitmap)
-        }
-
-    }
 
     val requestCameraPermissionLauncher = requestPermissionLauncher { granted ->
         if (!granted) onErrorReturned(
@@ -91,14 +78,12 @@ fun AppImagePicker(
     }
 
     val cameraLauncher = cameraLauncher(cameraImagePath) { bitmap ->
-        previewBitmap = bitmap
-        onImageReturned.invoke(previewBitmap)
+        onImageReturned.invoke(bitmap)
         cameraImagePath = null
     }
 
     val galleryLauncher = galleryLauncher(context) { bitmap ->
-        previewBitmap = bitmap
-        onImageReturned.invoke(previewBitmap)
+        onImageReturned.invoke(bitmap)
     }
 
 
@@ -129,31 +114,45 @@ fun AppImagePicker(
     Box(
         modifier = Modifier
             .border(
-                1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)
+                1.dp, MaterialTheme.colorScheme.primary,
+                RoundedCornerShape(12.dp)
             )
             .clip(RoundedCornerShape(12.dp))
             .aspectRatio(1.5f)
     ) {
-        if (previewBitmap != null) {
+        if (bitmap != null) {
             // Directly render picked bitmap (no Coil, no flicker)
             Image(
-                bitmap = previewBitmap!!.asImageBitmap(),
+                bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxWidth()
             )
-        } else {
+        } else if (imageUrl.isNotEmpty()) {
             // Fallback: load from URL if provided
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current).data(imageUrl)
-                    .memoryCachePolicy(CachePolicy.ENABLED) // enable memory cache
-                    .diskCachePolicy(CachePolicy.ENABLED)   // enable disk cache
-                    .crossfade(true).build(),
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .placeholder(R.drawable.error_placeholder)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .crossfade(true).listener(
+                        onError = { req, res ->
+                            Log.d("Surendar", res.throwable.message ?: "Image Load Error")
+                        }
+                    ).build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 error = painterResource(id = R.drawable.error_placeholder),
                 placeholder = painterResource(id = R.drawable.error_placeholder),
                 modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            // Default placeholder
+            Image(
+                painter = painterResource(id = R.drawable.error_placeholder),
+                contentDescription = "Error placeholder",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
             )
         }
         if (isEditEnabled) {
@@ -196,7 +195,7 @@ fun AppImagePicker(
                     tint = Color.White,
                 )
 
-                previewBitmap?.let {
+                bitmap?.let {
                     Icon(
                         imageVector = Icons.Rounded.Delete,
                         contentDescription = "Camera Icon",
@@ -210,8 +209,7 @@ fun AppImagePicker(
                             )
                             .padding(8.dp)
                             .clickable {
-                                previewBitmap = null
-                                onImageReturned.invoke(previewBitmap)
+                                onImageReturned.invoke(null)
                             },
                         tint = Color.White,
                     )

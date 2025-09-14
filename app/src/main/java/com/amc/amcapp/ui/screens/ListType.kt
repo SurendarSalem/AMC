@@ -17,4 +17,4 @@ sealed class ListType(
         }
     )
 }
-enum class ListTypeKey { SPARES, AMCS, COMPLAINTS }
+enum class ListTypeKey { SPARES, AMCS, COMPLAINTS, USERS }

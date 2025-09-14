@@ -1,7 +1,5 @@
 package com.amc.amcapp.ui.screens.amc
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -18,6 +16,7 @@ import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SportsGymnastics
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,34 +37,28 @@ import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.util.Avatar
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UserItem(
     user: User,
-    onClick: (() -> Unit)? = null,
+    onClick: ((User) -> Unit)? = null,
 ) {
     var pressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.97f else 1f,
-        label = "scaleAnim"
+        targetValue = if (pressed) 0.97f else 1f, label = "scaleAnim"
     )
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale
+                scaleX = scale, scaleY = scale
             )
             .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        pressed = true
-                        tryAwaitRelease()
-                        pressed = false
-                    },
-                    onTap = { onClick?.invoke() }
-                )
+                detectTapGestures(onPress = {
+                    pressed = true
+                    tryAwaitRelease()
+                    pressed = false
+                }, onTap = { onClick?.invoke(user) })
             },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
@@ -108,9 +101,7 @@ fun UserItem(
                         UserType.ADMIN -> Icons.Default.Person
                         UserType.GYM_OWNER -> Icons.Default.SportsGymnastics
                         UserType.SALES_PERSON -> Icons.Default.Money
-                    },
-                    contentDescription = it.label,
-                    tint = MaterialTheme.colorScheme.primary
+                    }, contentDescription = it.label, tint = MaterialTheme.colorScheme.primary
                 )
             }
 

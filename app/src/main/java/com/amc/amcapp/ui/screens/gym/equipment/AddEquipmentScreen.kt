@@ -21,17 +21,22 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
+import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.navigation.NavController
 import com.amc.amcapp.Complaint
 import com.amc.amcapp.Equipment
@@ -48,16 +53,22 @@ import com.amc.amcapp.util.AppImagePicker
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.util.openAppSettings
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalAnimationApi::class,
+    SavedStateHandleSaveableApi::class
+)
 @Composable
 fun AddEquipmentScreen(
     navController: NavController,
     user: User,
     equipment: Equipment? = null,
+    initialEditEnabled: Boolean = false,
     addEquipmentViewModel: AddEquipmentViewModel = koinViewModel(),
     onMenuUpdated: (Boolean, ImageVector, () -> Unit) -> Unit
 ) {
@@ -67,24 +78,21 @@ fun AddEquipmentScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackBarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
-    val isEditEnabled = remember { mutableStateOf(equipment == null) }
 
-    // SavedStateHandle collections
-    val savedStateHandle = navController.currentBackStackEntry!!.savedStateHandle
-    val selectedSpares by savedStateHandle
-        .getStateFlow("selectedSpares", emptyList<Spare>())
-        .collectAsState()
-    val selectedComplaints by savedStateHandle
-        .getStateFlow("selectedComplaints", emptyList<Complaint>())
-        .collectAsState()
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ?: return
 
+    val isEditEnabled = true
     val context = LocalContext.current
 
-    fun updateMenu() {
-        onMenuUpdated(
-            true,
-            if (isEditEnabled.value) Icons.Default.Cancel else Icons.Default.Edit
-        ) { isEditEnabled.value = !isEditEnabled.value }
+    LaunchedEffect(Unit) {
+        savedStateHandle.getStateFlow("selectedSpares", emptyList<Spare>()).collect {
+            addEquipmentViewModel::onSparesChanged
+        }
+    }
+    LaunchedEffect(Unit) {
+        savedStateHandle.getStateFlow("selectedComplaints", emptyList<Complaint>()).collect {
+            addEquipmentViewModel::onComplaintsChanged
+        }
     }
 
     LaunchedEffect(user.firebaseId) {
@@ -93,78 +101,40 @@ fun AddEquipmentScreen(
 
     LaunchedEffect(equipment?.id) {
         if (equipment != null) {
-            updateMenu()
             addEquipmentViewModel.preFillDetails(equipment)
         } else {
             onMenuUpdated(false, Icons.Default.Edit) {}
         }
     }
 
+    // Collect notify state
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             addEquipmentViewModel.notifyState.collectLatest { message ->
                 when (message) {
-                    is NotifyState.ShowToast -> {
-                        showSnackBar(scope, snackBarHostState, message.message)
-                    }
+                    is NotifyState.ShowToast -> showSnackBar(
+                        scope, snackBarHostState, message.message
+                    )
+
                     is NotifyState.LaunchActivity -> navController.popBackStack()
-                    else -> {}
+                    else -> Unit
                 }
             }
         }
     }
 
-    // Sync selections into viewmodel
-    LaunchedEffect(selectedComplaints) {
-        addEquipmentViewModel.onComplaintsChanged(selectedComplaints)
-    }
-    LaunchedEffect(selectedSpares) {
-        addEquipmentViewModel.onSparesChanged(selectedSpares)
-    }
-
+    // --- UI ---
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .verticalScroll(scrollState)
-                .padding(top = 16.dp),
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Animated header
-            Box(modifier = Modifier.fillMaxWidth()) {
-                AnimatedContent(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    targetState = isEditEnabled.value,
-                    transitionSpec = {
-                        fadeIn(tween(300)) + slideInVertically { it / 2 } togetherWith
-                                fadeOut(tween(300)) + slideOutVertically { -it / 2 }
-                    },
-                    label = "HeaderTransition"
-                ) { editable ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = if (editable) {
-                                if (equipment == null) "Create Equipment" else "Edit Equipment"
-                            } else "Equipment Details",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                        Text(
-                            text = if (editable) {
-                                if (equipment == null) "Fill in details to add equipment"
-                                else "Modify this equipment’s details"
-                            } else "Viewing in read-only mode",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
+            EquipmentHeader(isEditEnabled, equipment)
 
-            Spacer(Modifier.height(20.dp))
+            VerticalSpace(20.dp)
 
-            // Image picker
             AppImagePicker(
                 imageUrl = equipmentState.imageUrl,
                 bitmap = equipmentState.bitmap,
@@ -180,110 +150,36 @@ fun AddEquipmentScreen(
                     }
                     openAppSettings(context)
                 },
-                isEditEnabled = isEditEnabled.value
+                isEditEnabled = isEditEnabled
             )
 
-            Spacer(Modifier.height(20.dp))
+            VerticalSpace(20.dp)
 
-            // Equipment info
             AnimatedSectionCard("Equipment Info", Icons.Default.Person, true) {
                 AppTextField(
                     value = equipmentState.name,
                     onValueChange = addEquipmentViewModel::onNameChanged,
                     label = "Equipment Name",
-                    enabled = isEditEnabled.value
+                    enabled = isEditEnabled
                 )
-                Spacer(Modifier.height(12.dp))
+                VerticalSpace(12.dp)
 
-                EquipmentTypeSelection(
-                    equipmentState, addEquipmentViewModel, isEditEnabled.value
-                )
+                EquipmentTypeSelection(equipmentState, addEquipmentViewModel, isEditEnabled)
+
                 AppTextField(
                     value = equipmentState.description,
                     onValueChange = addEquipmentViewModel::onDescriptionChanged,
                     label = "Description",
                     minLines = 3,
-                    enabled = isEditEnabled.value
+                    enabled = isEditEnabled
                 )
             }
 
-            // Spares selection
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.primary)
-                    .padding(
-                        vertical = LocalDimens.current.spacingMedium.dp,
-                        horizontal = LocalDimens.current.spacingMedium.dp
-                    )
-                    .clickable {
-                        savedStateHandle["listTypeKey"] = ListTypeKey.SPARES
-                        navController.navigate(ListDest.ListScreen.route)
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Select Spares",
-                    fontSize = LocalDimens.current.textLarge.sp,
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Spares Icon",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            Spacer(modifier = Modifier.height(LocalDimens.current.spacingMedium.dp))
-            selectedSpares.forEachIndexed { index, spare ->
-                Text(
-                    "${index + 1}. ${spare.name}",
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(LocalDimens.current.spacingSmall.dp)
-                )
-            }
+            SparesSection(equipmentState.spares, navController, savedStateHandle)
 
-            // Complaints selection
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.primary)
-                    .padding(
-                        vertical = LocalDimens.current.spacingMedium.dp,
-                        horizontal = LocalDimens.current.spacingMedium.dp
-                    )
-                    .clickable {
-                        savedStateHandle["listTypeKey"] = ListTypeKey.COMPLAINTS
-                        navController.navigate(ListDest.ListScreen.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Select Complaints",
-                    fontSize = LocalDimens.current.textLarge.sp,
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Complaints Icon",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            selectedComplaints.forEachIndexed { index, complaint ->
-                Text(
-                    "${index + 1}. ${complaint.name}",
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(LocalDimens.current.spacingSmall.dp)
-                )
-            }
+            ComplaintsSection(equipmentState.complaints, navController, savedStateHandle)
 
-            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+            VerticalSpace(LocalDimens.current.spacingMedium.dp)
 
             Button(
                 onClick = {
@@ -299,7 +195,7 @@ fun AddEquipmentScreen(
                         }
                     }
                 },
-                enabled = isEditEnabled.value,
+                enabled = isEditEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -312,9 +208,9 @@ fun AddEquipmentScreen(
                 )
             }
 
-            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+            VerticalSpace(LocalDimens.current.spacingMedium.dp)
             SnackbarHost(hostState = snackBarHostState)
-            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+            VerticalSpace(LocalDimens.current.spacingMedium.dp)
         }
 
         if (addEquipmentState is ApiResult.Loading) {
@@ -328,10 +224,127 @@ fun AddEquipmentScreen(
 }
 
 @Composable
+private fun EquipmentHeader(isEditable: Boolean, equipment: Equipment?) {
+    AnimatedContent(
+        targetState = isEditable, transitionSpec = {
+            fadeIn(tween(300)) + slideInVertically { it / 2 } togetherWith fadeOut(tween(300)) + slideOutVertically { -it / 2 }
+        }, label = "HeaderTransition"
+    ) { editable ->
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = when {
+                    editable && equipment == null -> "Create Equipment"
+                    editable -> "Edit Equipment"
+                    else -> "Equipment Details"
+                },
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            )
+            Text(
+                text = when {
+                    editable && equipment == null -> "Fill in details to add equipment"
+                    editable -> "Modify this equipment’s details"
+                    else -> "Viewing in read-only mode"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun SparesSection(
+    selectedSpares: List<Spare>, navController: NavController, savedStateHandle: SavedStateHandle
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, MaterialTheme.colorScheme.primary)
+            .padding(
+                vertical = LocalDimens.current.spacingMedium.dp,
+                horizontal = LocalDimens.current.spacingMedium.dp
+            )
+            .clickable {
+                savedStateHandle["listTypeKey"] = ListTypeKey.SPARES
+                savedStateHandle["selectedSpares"] = selectedSpares
+                navController.navigate(ListDest.ListScreen.route)
+            }, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Select Spares",
+            fontSize = LocalDimens.current.textLarge.sp,
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = "Spares Icon",
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+    VerticalSpace(LocalDimens.current.spacingMedium.dp)
+    Column(modifier = Modifier.fillMaxWidth()) {
+        selectedSpares.forEachIndexed { index, spare ->
+            Text(
+                "${index + 1}. ${spare.name}",
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(LocalDimens.current.spacingSmall.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ComplaintsSection(
+    selectedComplaints: List<Complaint>,
+    navController: NavController,
+    savedStateHandle: SavedStateHandle
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, MaterialTheme.colorScheme.primary)
+            .padding(
+                vertical = LocalDimens.current.spacingMedium.dp,
+                horizontal = LocalDimens.current.spacingMedium.dp
+            )
+            .clickable {
+                savedStateHandle["listTypeKey"] = ListTypeKey.COMPLAINTS
+                savedStateHandle["selectedComplaints"] = selectedComplaints
+                navController.navigate(ListDest.ListScreen.route) {
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Select Complaints",
+            fontSize = LocalDimens.current.textLarge.sp,
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = "Complaints Icon",
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        selectedComplaints.forEachIndexed { index, complaint ->
+            Text(
+                "${index + 1}. ${complaint.name}",
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(LocalDimens.current.spacingSmall.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun EquipmentTypeSelection(
-    addEquipmentState: AddEquipmentState,
-    viewModel: AddEquipmentViewModel,
-    isEditEnabled: Boolean
+    addEquipmentState: AddEquipmentState, viewModel: AddEquipmentViewModel, isEditEnabled: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -351,8 +364,7 @@ fun EquipmentTypeSelection(
                     .fillMaxWidth()
                     .clickable(enabled = isEditEnabled) {
                         viewModel.onEquipmentTypeChanged(equipmentType)
-                    },
-                verticalAlignment = Alignment.CenterVertically
+                    }, verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(
                     selected = (addEquipmentState.equipmentType == equipmentType),
@@ -361,10 +373,12 @@ fun EquipmentTypeSelection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = equipmentType.label,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = equipmentType.label, style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
     }
 }
+
+@Composable
+private fun VerticalSpace(height: Dp) = Spacer(Modifier.height(height))

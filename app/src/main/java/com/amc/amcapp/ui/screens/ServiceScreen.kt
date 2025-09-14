@@ -21,8 +21,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.amc.amcapp.model.AMC
+import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.BottomDest
+import com.amc.amcapp.ui.ListDest
+import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.ui.screens.amc.AMCListScreen
+import com.amc.amcapp.ui.screens.amc.AddAmcScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -45,6 +50,20 @@ fun ServiceScreen() {
                 modifier = Modifier.fillMaxSize()
             ) {
                 composable(BottomDest.Amc.route) { AMCListScreen(navController) }
+                composable(UserDest.AddAMC.route) {
+                    navController.previousBackStackEntry?.savedStateHandle?.let {
+                        val user = it.get<User>("user")
+                        val amc = it.get<AMC>("amc")
+                        AddAmcScreen(
+                            navController = navController,
+                            user = user, amc = amc,
+                            isForEdit = true
+                        )
+                    }
+                }
+                composable(ListDest.ListScreen.route) { backStackEntry ->
+                    ListItemScreen(navController)
+                }
             }
         }
 

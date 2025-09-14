@@ -227,8 +227,8 @@ class AddUserViewModel(
         _addUserState.value = _addUserState.value.copy(gymName = password)
     }
 
-    fun onImageUrlChanged(userType: String) {
-        _addUserState.value = _addUserState.value.copy(imageUrl = userType)
+    fun onImageUrlChanged(imageUrl: String) {
+        _addUserState.value = _addUserState.value.copy(imageUrl = imageUrl)
     }
 
     fun onAmcEnabled(isAmcEnabled: Boolean) {
@@ -242,7 +242,6 @@ class AddUserViewModel(
 
     fun onBitmapChanged(bitmap: Bitmap?) {
         _addUserState.value = _addUserState.value.copy(bitmap = bitmap)
-        onImageUrlChanged("")
     }
 
     fun preFillUserState(user: User) {

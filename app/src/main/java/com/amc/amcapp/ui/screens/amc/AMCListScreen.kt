@@ -23,6 +23,7 @@ import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppError
 import com.amc.amcapp.ui.AppLoadingBar
 import com.amc.amcapp.ui.AMCItem
+import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.viewmodel.AMCListViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -38,28 +39,32 @@ fun AMCListScreen(
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(16.dp)
     ) {
-        val userListState by amcListViewModel.amcListState.collectAsState()
-        when (userListState) {
+        val amcListState by amcListViewModel.amcListState.collectAsState()
+        when (amcListState) {
             is ApiResult.Loading -> {
                 AppLoadingBar(this@Box)
             }
 
             is ApiResult.Error -> {
-                AppError(errorMessage = (userListState as ApiResult.Error).message)
+                AppError(errorMessage = (amcListState as ApiResult.Error).message)
             }
 
             is ApiResult.Success -> {
-                val users = (userListState as ApiResult.Success<List<AMC>>).data
-                if (users.isEmpty()) {
+                val amcs = (amcListState as ApiResult.Success<List<AMC>>).data
+                if (amcs.isEmpty()) {
                     AppError(errorMessage = "No AMC found.\n Please add some AMCs.")
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        items(users) { item ->
-                            AMCItem(item = item, onClick = {
-                                //navController.navigate("detail/${item.id}")
+                        items(amcs) { amc ->
+
+                            AMCItem(item = amc, onClick = {
+                                navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("amc", amc)
+                                }
+                                navController.navigate(UserDest.AddAMC.route)
                             })
                             Spacer(modifier = Modifier.padding(4.dp))
                         }

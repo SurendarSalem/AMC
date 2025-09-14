@@ -19,7 +19,7 @@ class UserListViewModel(val userRepository: IUserRepository) : ViewModel() {
         MutableStateFlow(ApiResult.Loading)
     val amcListState: StateFlow<ApiResult<List<User>>> = _usersState.asStateFlow()
 
-    var _filterUserType: MutableStateFlow<UserType?> = MutableStateFlow(UserType.TECHNICIAN)
+    var _filterUserType: MutableStateFlow<UserType?> = MutableStateFlow(UserType.GYM_OWNER)
 
     val filteredUsers = combine(
         _usersState, _filterUserType

@@ -1,19 +1,47 @@
 package com.amc.amcapp.ui.screens.customer
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -26,17 +54,24 @@ import androidx.navigation.NavController
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
-import com.amc.amcapp.ui.*
+import com.amc.amcapp.ui.AnimatedSectionCard
+import com.amc.amcapp.ui.ApiResult
+import com.amc.amcapp.ui.AppProgressBar
+import com.amc.amcapp.ui.AppTextField
+import com.amc.amcapp.ui.EmailField
+import com.amc.amcapp.ui.PasswordField
+import com.amc.amcapp.ui.PhoneNumberField
+import com.amc.amcapp.ui.RoleSelectionSection
+import com.amc.amcapp.ui.UserDest
+import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.AppImagePicker
-import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.util.openAppSettings
-import com.amc.amcapp.viewmodel.AddUserState
 import com.amc.amcapp.viewmodel.AddUserViewModel
 import com.amc.amcapp.viewmodel.toUser
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -102,19 +137,34 @@ fun AddUserScreen(
             .fillMaxSize()
             .padding(LocalDimens.current.spacingMedium.dp)
     ) {
-
-        TopErrorBanner(
-            errorMessage = if (!addUserViewModel.isValidUser(user != null)) errorMessage else null,
-            fontSize = 18f
-        )
         Column(
             modifier = Modifier
-                .padding(top = 72.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(20.dp))
             Box(modifier = Modifier.fillMaxWidth()) {
+                if (user != null && user.userType == UserType.GYM_OWNER) {
+                    Text(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .clickable {
+                                navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("user", user)
+                                }
+                                navController.navigate(UserDest.AddAMC.route)
+                            },
+                        text = "Add AMC",
+                        fontSize = LocalDimens.current.textMedium.sp
+                    )
+                }
                 AnimatedContent(
                     modifier = Modifier.align(Alignment.TopCenter),
                     targetState = isEditEnabled.value,
@@ -148,6 +198,12 @@ fun AddUserScreen(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                             .clickable {
                                 navController.currentBackStackEntry?.savedStateHandle?.apply {
                                     set("user", user)
@@ -158,7 +214,7 @@ fun AddUserScreen(
                                 }
                             },
                         text = "Equipments",
-                        fontSize = LocalDimens.current.textLarge.sp
+                        fontSize = LocalDimens.current.textMedium.sp
                     )
                 }
 
@@ -168,6 +224,7 @@ fun AddUserScreen(
 
             AppImagePicker(
                 imageUrl = userState.imageUrl,
+                bitmap = userState.bitmap,
                 onImageReturned = addUserViewModel::onBitmapChanged,
                 onErrorReturned = { error ->
                     showSnackBar(
@@ -279,11 +336,7 @@ fun AddUserScreen(
 
         // 🔹 Loader
         if (addUserResult is ApiResult.Loading) {
-            BubbleProgressBar(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.Center)
-            )
+           AppProgressBar(this)
         }
 
         SnackbarHost(

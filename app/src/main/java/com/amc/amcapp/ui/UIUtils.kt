@@ -105,12 +105,12 @@ fun AppTextField(
 fun AppProgressBar(boxScope: BoxScope) {
     boxScope.apply {
         BubbleProgressBar(
-            count = 3,
-            dotSize = 8.dp,
+            count = 5,
+            dotSize = 16.dp,
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.Center),
-            animationDurationMs = 300
+            animationDurationMs = 400
         )
     }
 }
@@ -349,8 +349,7 @@ fun RoleSelectionSection(
                 Spacer(modifier = Modifier.width(8.dp))
                 if (role == UserType.GYM_OWNER && userState.userType == UserType.GYM_OWNER) {
                     Checkbox(
-                        checked = userState.isAmcEnabled,
-                        onCheckedChange = viewModel::onAmcEnabled
+                        checked = userState.isAmcEnabled, onCheckedChange = viewModel::onAmcEnabled
                     )
                     Text(
                         text = "Is AMC Enabled?", fontSize = LocalDimens.current.textMedium.sp
@@ -395,22 +394,16 @@ fun TopErrorBanner(
 
 @Composable
 fun ComplaintItem(
-    complaintUiState: ComplaintUiState,
-    onCheckedChange: (Boolean) -> Unit
+    complaintUiState: ComplaintUiState, onCheckedChange: (Boolean) -> Unit
 ) {
-    ListItem(
-        headlineContent = {
-            Text(text = complaintUiState.complaint.name)
-        },
-        trailingContent = {
-            Checkbox(
-                checked = complaintUiState.isSelected,
-                onCheckedChange = onCheckedChange
-            )
-        },
-        modifier = Modifier.clickable {
-            onCheckedChange(!complaintUiState.isSelected)
-        }
-    )
+    ListItem(headlineContent = {
+        Text(text = complaintUiState.complaint.name)
+    }, trailingContent = {
+        Checkbox(
+            checked = complaintUiState.isSelected, onCheckedChange = onCheckedChange
+        )
+    }, modifier = Modifier.clickable {
+        onCheckedChange(!complaintUiState.isSelected)
+    })
 }
 

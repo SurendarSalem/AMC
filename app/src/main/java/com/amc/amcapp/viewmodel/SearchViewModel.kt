@@ -12,10 +12,10 @@ class SearchViewModel<T>(val searchRepository: ISearchRepository<T>) : ViewModel
         MutableStateFlow(ApiResult.Loading)
     val itemsState: StateFlow<ApiResult<List<T>>> = _itemsState.asStateFlow()
 
-     suspend fun fetchAll(tableName: String) {
+    suspend fun fetchAll(tableName: String, filterBy: Pair<String, String> = Pair("", "")) {
         try {
             _itemsState.value = ApiResult.Loading
-            val items = searchRepository.getAllItems(tableName)
+            val items = searchRepository.getAllItems(tableName, filterBy)
             _itemsState.value = ApiResult.Success(items)
         } catch (e: Exception) {
             _itemsState.value = ApiResult.Error(e.message ?: "Unknown error occurred")

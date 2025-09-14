@@ -31,7 +31,7 @@ data class AddEquipmentState(
     val bitmap: Bitmap? = null,
     val equipmentType: EquipmentType? = null,
     val complaints: MutableList<Complaint> = mutableListOf(),
-    val spares: MutableList<Spare> = mutableListOf(),
+    var spares: MutableList<Spare> = mutableListOf(),
     val isForEdit: Boolean = false
 )
 
@@ -195,6 +195,7 @@ class AddEquipmentViewModel(
             description = equipment.description,
             equipmentType = equipment.equipmentType,
             imageUrl = equipment.imageUrl,
+            complaints = equipment.complaints.toMutableList(),
             spares = equipment.spares.toMutableList(),
             isForEdit = true
         )

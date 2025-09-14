@@ -87,6 +87,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
             EmailField(
                 text = username,
                 onValueChange = { username = it },
+                enabled = loginResult !is AuthResult.Loading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -94,6 +95,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
             PasswordField(
                 text = password,
                 onValueChange = { password = it },
+                enabled = loginResult !is AuthResult.Loading
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -162,11 +164,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
         )
 
         if (loginResult is AuthResult.Loading) {
-            BubbleProgressBar(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.Center)
-            )
+           AppProgressBar(this)
         }
     }
 }

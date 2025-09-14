@@ -41,10 +41,10 @@ fun AMCItem(
     item: AMC,
     onClick: () -> Unit
 ) {
-    val dateText = remember(item.updatedAt) {
+    val dateText = remember(item.createdDate) {
         val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy").withLocale(Locale.getDefault())
             .withZone(ZoneId.systemDefault())
-        formatter.format(Instant.ofEpochMilli(item.updatedAt))
+        formatter.format(Instant.ofEpochMilli(item.createdDate))
     }
     Card(
         modifier = Modifier
@@ -77,7 +77,7 @@ fun AMCItem(
                     .weight(1f)
             ) {
                 Text(
-                    text = item.name,
+                    text = item.gymName,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
