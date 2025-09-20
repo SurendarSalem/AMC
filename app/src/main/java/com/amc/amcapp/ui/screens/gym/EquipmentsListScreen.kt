@@ -48,6 +48,7 @@ import com.amc.amcapp.Equipment
 import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
+import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppError
 import com.amc.amcapp.ui.AppProgressBar
@@ -140,42 +141,45 @@ fun EquipmentsListScreen(
             is ApiResult.Loading -> AppProgressBar(this@Box)
             else -> {}
         }
+        if (user.userType != UserType.ADMIN) {
 
-        FloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(LocalDimens.current.spacingLarge.dp), onClick = {
-                savedStateHandle?.apply {
-                    this["listTypeKey"] = ListTypeKey.EQUIPMENTS
-                    if (equipmentsListState is ApiResult.Success) {
-                        this[Constants.SELECTED_EQUIPMENTS] =
-                            (equipmentsListState as ApiResult.Success<List<Equipment>>).data
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(LocalDimens.current.spacingLarge.dp), onClick = {
+                    savedStateHandle?.apply {
+                        this["listTypeKey"] = ListTypeKey.EQUIPMENTS
+                        if (equipmentsListState is ApiResult.Success) {
+                            this[Constants.SELECTED_EQUIPMENTS] =
+                                (equipmentsListState as ApiResult.Success<List<Equipment>>).data
+                        }
                     }
-                }
-                navController.navigate(ListDest.ListScreen.route)
-            }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Equipment")
-        }
-        Button(
-            enabled = newEquipmentSelected && equipmentsListState !is ApiResult.Loading && updateEquipmentState !is ApiResult.Loading,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(LocalDimens.current.spacingLarge.dp),
-            onClick = {
+                    navController.navigate(ListDest.ListScreen.route)
+                }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Equipment")
+            }
 
-                val currentEquipments = if (equipmentsListState is ApiResult.Success) {
-                    (equipmentsListState as ApiResult.Success<List<Equipment>>).data
-                } else {
-                    emptyList()
-                }
-                val equipmentIds = currentEquipments.map { it.id }
-                user.equipments = equipmentIds
-                scope.launch {
-                    equipmentsListViewModel.updateEquipments(user)
-                }
-            }) {
-            Text("Update Equipments")
+            Button(
+                enabled = newEquipmentSelected && equipmentsListState !is ApiResult.Loading && updateEquipmentState !is ApiResult.Loading,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(LocalDimens.current.spacingLarge.dp),
+                onClick = {
+
+                    val currentEquipments = if (equipmentsListState is ApiResult.Success) {
+                        (equipmentsListState as ApiResult.Success<List<Equipment>>).data
+                    } else {
+                        emptyList()
+                    }
+                    val equipmentIds = currentEquipments.map { it.id }
+                    user.equipments = equipmentIds
+                    scope.launch {
+                        equipmentsListViewModel.updateEquipments(user)
+                    }
+                }) {
+                Text("Update Equipments")
+            }
         }
 
         SnackbarHost(
