@@ -87,13 +87,13 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
     var menuIcon by remember { mutableStateOf(Icons.Default.Search) }
     var menuClick: () -> Unit by remember { mutableStateOf({}) }
 
-    val user = landingViewModel.user.collectAsState().value
+    val currentUser = landingViewModel.user.collectAsState().value
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                DrawerHeader(user)
+                DrawerHeader(currentUser)
 
                 topDestinations.forEach { dest ->
                     NavigationDrawerItem(
@@ -177,6 +177,7 @@ fun LandingScreen(landingViewModel: LandingViewModel) {
             }
         ) { innerPadding ->
             LandingNavHost(
+                currentUser,
                 navController = navController,
                 innerPadding = innerPadding,
                 onListItemScreenTitleChange = { listItemScreenTitle = it },

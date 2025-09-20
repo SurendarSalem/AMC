@@ -22,7 +22,7 @@ enum class DrawerDest(
     ),
     Services("services", "AMC & Services", Icons.Default.HomeRepairService),
 
-    Equipments("equipments", "Equipments", Icons.Default.SportsGymnastics),
+    DrawerEquipments("drawerEquipments", "Equipments", Icons.Default.SportsGymnastics),
 
     Settings("settings", "Settings", Icons.Default.Settings),
 

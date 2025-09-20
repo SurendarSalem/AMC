@@ -7,6 +7,7 @@ import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
+import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,8 +42,14 @@ class EquipmentsListViewModel(
 
     fun loadEquipments() {
         viewModelScope.launch {
-            equipmentsRepository.getEquipmentsByIds(user.equipments).collect { result ->
-                _equipmentsListState.value = result
+            if (user.userType == UserType.ADMIN) {
+                equipmentsRepository.getEquipments("").collect { result ->
+                    _equipmentsListState.value = result
+                }
+            } else {
+                equipmentsRepository.getEquipmentsByIds(user.equipments).collect { result ->
+                    _equipmentsListState.value = result
+                }
             }
         }
     }

@@ -30,12 +30,13 @@ import com.amc.amcapp.ui.screens.service.AddServiceScreen
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LandingNavHost(
+    currentUser: User?,
     navController: NavHostController,
     innerPadding: PaddingValues,
     onListItemScreenTitleChange: (String) -> Unit,
     onMenuEnabledChange: (Boolean) -> Unit,
     onMenuIconChange: (ImageVector) -> Unit,
-    onMenuClickChange: ((() -> Unit) -> Unit) // ✅ changed here
+    onMenuClickChange: ((() -> Unit) -> Unit) // ✅ changed here){}
 ) {
     NavHost(
         navController = navController,
@@ -62,12 +63,12 @@ fun LandingNavHost(
             ServiceScreen { onListItemScreenTitleChange(it) }
         }
 
-        // Customers Screen
-        composable(DrawerDest.Users.route) {
-            CustomerListScreen(navController)
+        composable(DrawerDest.DrawerEquipments.route) {
+            currentUser?.let {
+                EquipmentsListScreen(navController = navController, user = it)
+            }
         }
 
-        // Equipments List
         composable(UserDest.Equipments.route) {
             val user = navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
             user?.let {
@@ -75,6 +76,13 @@ fun LandingNavHost(
                 onMenuEnabledChange(false)
             }
         }
+
+        // Customers Screen
+        composable(DrawerDest.Users.route) {
+            CustomerListScreen(navController)
+        }
+
+        // Equipments List
 
         // Add/Edit Equipment
         composable(GymDest.AddEquipment.route) {
