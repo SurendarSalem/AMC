@@ -20,7 +20,9 @@ enum class DrawerDest(
         "Users",
         Icons.Default.Person
     ),
-    Services("services", "Services", Icons.Default.HomeRepairService),
+    Services("services", "AMC & Services", Icons.Default.HomeRepairService),
+
+    Equipments("equipments", "Equipments", Icons.Default.SportsGymnastics),
 
     Settings("settings", "Settings", Icons.Default.Settings),
 
@@ -32,11 +34,8 @@ enum class UserDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
     AddUser("customers/addUser", "Add User", Icons.Default.Add),
-
-    EditUser("customers/editUser", "Edit User", Icons.Default.Add), Equipments(
-        "equipments", "Equipments", Icons.Default.SportsGymnastics
-    ),
-
+    EditUser("customers/editUser", "Edit User", Icons.Default.Add),
+    Equipments("equipments", "Equipments", Icons.Default.SportsGymnastics),
     AddAMC("customers/editUser/addAMC", "Add AMC", Icons.Default.SportsGymnastics)
 }
 
@@ -49,9 +48,8 @@ enum class GymDest(
 }
 
 enum class BottomDest(val route: String, val label: String, val icon: ImageVector) {
-    Amc("amc", "AMC", Icons.AutoMirrored.Filled.List), Services(
-        "services", "Services", Icons.Default.SportsGymnastics
-    ),
+    Amc("amc", "AMC", Icons.AutoMirrored.Filled.List),
+    Services("services", "Services", Icons.Default.SportsGymnastics),
     Favorites("sales", "Sales", Icons.Default.BusinessCenter)
 }
 

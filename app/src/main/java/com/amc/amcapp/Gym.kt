@@ -59,6 +59,15 @@ data class Equipment(
     )
 }
 
+@Parcelize
+data class EquipmentUiItem(
+    val equipment: Equipment, var isSelected: Boolean = false, var enabled: Boolean = true
+) : Parcelable
+
+fun Equipment.toUiItem() = EquipmentUiItem(
+    equipment = this, isSelected = false, enabled = true
+)
+
 enum class EquipmentType(val label: String) {
     CARDIO("Cardio"), CHEST("Chest"), DUMBBELL("Dumbbell")
 }
@@ -85,8 +94,7 @@ data class Complaints(
 
 
 data class ComplaintUiItem(
-    val complaint: Complaint,
-    var isSelected: Boolean = false
+    val complaint: Complaint, var isSelected: Boolean = false
 )
 
 @Parcelize
@@ -99,8 +107,7 @@ data class Complaint(
 }
 
 fun Complaint.toUiItem() = ComplaintUiItem(
-    complaint = this,
-    isSelected = false
+    complaint = this, isSelected = false
 )
 
 data class Location(

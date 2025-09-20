@@ -31,7 +31,7 @@ import com.amc.amcapp.ui.screens.amc.AddAmcScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ServiceScreen() {
+fun ServiceScreen(onTitleUpdated: (String) -> Unit) {
     val navController = rememberNavController()
     val bottomItems = BottomDest.entries
 
@@ -62,7 +62,9 @@ fun ServiceScreen() {
                     }
                 }
                 composable(ListDest.ListScreen.route) { backStackEntry ->
-                    ListItemScreen(navController)
+                    ListItemScreen(navController) {
+                       onTitleUpdated(it)
+                    }
                 }
             }
         }

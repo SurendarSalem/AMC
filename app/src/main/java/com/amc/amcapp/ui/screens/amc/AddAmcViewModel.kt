@@ -2,6 +2,7 @@ package com.amc.amcapp.ui.screens.amc
 
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.data.IAmcRepository
+import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.ApiResult
@@ -10,7 +11,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class AddAmcViewModel(val amcRepository: IAmcRepository) : ViewModel() {
+class AddAmcViewModel(
+    val amcRepository: IAmcRepository,
+    val equipmentsRepository: IEquipmentsRepository
+) : ViewModel() {
     private val _addAmcState: MutableStateFlow<ApiResult<AMC>> = MutableStateFlow(ApiResult.Empty)
     val addAmcState = _addAmcState.asStateFlow()
 
@@ -71,5 +75,13 @@ class AddAmcViewModel(val amcRepository: IAmcRepository) : ViewModel() {
 
     fun preFillDetails(amc: AMC) {
         _amcState.value = amc
+    }
+
+    suspend fun getEquipments(gymId: String = "") {
+        equipmentsRepository.getEquipments(gymId).collect {result ->
+            if (result is ApiResult.Success) {
+
+            }
+        }
     }
 }

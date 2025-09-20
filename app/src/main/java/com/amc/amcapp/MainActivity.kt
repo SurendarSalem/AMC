@@ -8,6 +8,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.amc.amcapp.data.datastore.PreferenceHelper
+import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.ui.LandingActivity
 import com.amc.amcapp.ui.NavigationStack
 import com.amc.amcapp.ui.theme.AMCTheme
@@ -24,7 +26,11 @@ class MainActivity : ComponentActivity() {
     private val viewModel: SplashViewModel by viewModel()
 
     private val complaintRepository: IComplaintRepository by inject()
+
+    private val equipmentsRepository: IEquipmentsRepository by inject()
     private var keepSplash = true
+
+    private val preferenceHelper: PreferenceHelper by inject()
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +39,8 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             complaintRepository.getAllComplaints()
+            equipmentsRepository.getEquipments()
         }
-
         splashScreen.setKeepOnScreenCondition { keepSplash }
         enableEdgeToEdge()
         actionBar?.hide()

@@ -17,7 +17,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.amc.amcapp.model.NotifyState
+import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.*
+import com.amc.amcapp.ui.technician.TechnicianActivity
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.viewmodel.LoginViewModel
@@ -48,13 +50,23 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
                         scope.launch { snackBarHostState.showSnackbar(message.message) }
                     }
 
-                    is NotifyState.LaunchActivity -> {
-                        val intent = Intent(context, LandingActivity::class.java)
-                        context.startActivity(intent)
-                        (context as Activity).finish()
+                    else -> {
                     }
-
-                    else -> { /* Handle other NotifyStates if needed */
+                }
+            }
+            loginViewModel.user.collectLatest { user ->
+                user?.let {
+                    when (it.userType) {
+                        UserType.TECHNICIAN -> {
+                            val intent = Intent(context, TechnicianActivity::class.java)
+                            context.startActivity(intent)
+                            (context as Activity).finish()
+                        }
+                        else -> {
+                            val intent = Intent(context, LandingActivity::class.java)
+                            context.startActivity(intent)
+                            (context as Activity).finish()
+                        }
                     }
                 }
             }
@@ -164,7 +176,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = k
         )
 
         if (loginResult is AuthResult.Loading) {
-           AppProgressBar(this)
+            AppProgressBar(this)
         }
     }
 }

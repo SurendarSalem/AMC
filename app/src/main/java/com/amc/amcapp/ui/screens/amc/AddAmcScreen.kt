@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.NotifyState
+import com.amc.amcapp.model.Status
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
@@ -62,6 +63,12 @@ fun AddAmcScreen(
         if (isForEdit) {
         } else {
             addAmcViewModel.onGymNameChanged(user?.name ?: "")
+        }
+
+        if (user?.userType == UserType.TECHNICIAN) {
+            if (amc?.status == Status.PENDING) {
+                addAmcViewModel.getEquipments(amc.gymId)
+            }
         }
 
         savedStateHandle.getLiveData<User>("selectedTechnician")
@@ -143,6 +150,12 @@ fun AddAmcScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
             // --- Submit button ---
+
+
+
+
+
+
             Button(
                 onClick = {
                     val error = addAmcViewModel.validate(amcState.value)

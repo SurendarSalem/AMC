@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -36,7 +35,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
-import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.navigation.NavController
 import com.amc.amcapp.Complaint
 import com.amc.amcapp.Equipment
@@ -53,7 +51,6 @@ import com.amc.amcapp.util.AppImagePicker
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.util.openAppSettings
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -78,20 +75,23 @@ fun AddEquipmentScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackBarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ?: return
 
-    val isEditEnabled = true
-    val context = LocalContext.current
+    var isEditEnabled by rememberSaveable { mutableStateOf(true) }
 
+    // Collect selected spares
     LaunchedEffect(Unit) {
         savedStateHandle.getStateFlow("selectedSpares", emptyList<Spare>()).collect {
-            addEquipmentViewModel::onSparesChanged
+            addEquipmentViewModel.onSparesChanged(it)
         }
     }
+
+    // Collect selected complaints
     LaunchedEffect(Unit) {
         savedStateHandle.getStateFlow("selectedComplaints", emptyList<Complaint>()).collect {
-            addEquipmentViewModel::onComplaintsChanged
+            addEquipmentViewModel.onComplaintsChanged(it)
         }
     }
 
@@ -133,7 +133,7 @@ fun AddEquipmentScreen(
         ) {
             EquipmentHeader(isEditEnabled, equipment)
 
-            VerticalSpace(20.dp)
+            SpacerLarge()
 
             AppImagePicker(
                 imageUrl = equipmentState.imageUrl,
@@ -141,19 +141,19 @@ fun AddEquipmentScreen(
                 onImageReturned = addEquipmentViewModel::onBitmapChanged,
                 onErrorReturned = { error ->
                     scope.launch {
-                        showSnackBar(
-                            scope,
-                            snackBarHostState,
-                            if (error is NotifyState.ShowToast) error.message else "Error",
+                        val result = snackBarHostState.showSnackbar(
+                            message = if (error is NotifyState.ShowToast) error.message else "Error",
                             actionLabel = "Open Settings"
                         )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            openAppSettings(context)
+                        }
                     }
-                    openAppSettings(context)
                 },
                 isEditEnabled = isEditEnabled
             )
 
-            VerticalSpace(20.dp)
+            SpacerLarge()
 
             AnimatedSectionCard("Equipment Info", Icons.Default.Person, true) {
                 AppTextField(
@@ -162,7 +162,7 @@ fun AddEquipmentScreen(
                     label = "Equipment Name",
                     enabled = isEditEnabled
                 )
-                VerticalSpace(12.dp)
+                SpacerMedium()
 
                 EquipmentTypeSelection(equipmentState, addEquipmentViewModel, isEditEnabled)
 
@@ -179,7 +179,7 @@ fun AddEquipmentScreen(
 
             ComplaintsSection(equipmentState.complaints, navController, savedStateHandle)
 
-            VerticalSpace(LocalDimens.current.spacingMedium.dp)
+            SpacerMedium()
 
             Button(
                 onClick = {
@@ -208,9 +208,9 @@ fun AddEquipmentScreen(
                 )
             }
 
-            VerticalSpace(LocalDimens.current.spacingMedium.dp)
+            SpacerMedium()
             SnackbarHost(hostState = snackBarHostState)
-            VerticalSpace(LocalDimens.current.spacingMedium.dp)
+            SpacerMedium()
         }
 
         if (addEquipmentState is ApiResult.Loading) {
@@ -227,7 +227,8 @@ fun AddEquipmentScreen(
 private fun EquipmentHeader(isEditable: Boolean, equipment: Equipment?) {
     AnimatedContent(
         targetState = isEditable, transitionSpec = {
-            fadeIn(tween(300)) + slideInVertically { it / 2 } togetherWith fadeOut(tween(300)) + slideOutVertically { -it / 2 }
+            fadeIn(tween(300)) + slideInVertically { it / 2 } togetherWith
+                    fadeOut(tween(300)) + slideOutVertically { -it / 2 }
         }, label = "HeaderTransition"
     ) { editable ->
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -267,7 +268,10 @@ private fun SparesSection(
             .clickable {
                 savedStateHandle["listTypeKey"] = ListTypeKey.SPARES
                 savedStateHandle["selectedSpares"] = selectedSpares
-                navController.navigate(ListDest.ListScreen.route)
+                navController.navigate(ListDest.ListScreen.route) {
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }, verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -282,7 +286,7 @@ private fun SparesSection(
             tint = MaterialTheme.colorScheme.primary
         )
     }
-    VerticalSpace(LocalDimens.current.spacingMedium.dp)
+    SpacerMedium()
     Column(modifier = Modifier.fillMaxWidth()) {
         selectedSpares.forEachIndexed { index, spare ->
             Text(
@@ -330,6 +334,7 @@ private fun ComplaintsSection(
             tint = MaterialTheme.colorScheme.primary
         )
     }
+    SpacerMedium()
     Column(modifier = Modifier.fillMaxWidth()) {
         selectedComplaints.forEachIndexed { index, complaint ->
             Text(
@@ -380,5 +385,5 @@ fun EquipmentTypeSelection(
     }
 }
 
-@Composable
-private fun VerticalSpace(height: Dp) = Spacer(Modifier.height(height))
+@Composable fun SpacerMedium() = Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+@Composable fun SpacerLarge() = Spacer(Modifier.height(20.dp))

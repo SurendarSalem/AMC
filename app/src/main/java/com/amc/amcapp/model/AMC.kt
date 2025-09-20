@@ -1,6 +1,7 @@
 package com.amc.amcapp.model
 
 import android.os.Parcelable
+import com.amc.amcapp.Equipment
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -17,7 +18,8 @@ data class AMC(
     val assignedId: String = "",
     val assignedName: String = "",
     val gymImage: String = "",
-    val assigneeImage: String = ""
+    val assigneeImage: String = "",
+    val equipments: List<Equipment> = emptyList()
 ) : Parcelable
 
 enum class Status {

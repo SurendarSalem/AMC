@@ -2,7 +2,6 @@ package com.amc.amcapp.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
-import okhttp3.Address
 
 @Parcelize
 open class User(
@@ -15,7 +14,8 @@ open class User(
     open var imageUrl: String = "",
     open var phoneNumber: String = "",
     open var address: String = "",
-    open var isAmcEnabled: Boolean = false
+    open var isAmcEnabled: Boolean = false,
+    open var equipments: List<String> = emptyList(),
 ) : Parcelable
 
 

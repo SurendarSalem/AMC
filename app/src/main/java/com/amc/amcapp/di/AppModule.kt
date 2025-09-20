@@ -16,6 +16,7 @@ import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.gym.AddGymViewModel
 import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.gym.GymRepository
+import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.screens.amc.AddAmcViewModel
 import com.amc.amcapp.ui.screens.amc.UserListViewModel
 import com.amc.amcapp.ui.screens.service.AddServiceViewModel
@@ -69,14 +70,16 @@ val appModule = module {
     single<IComplaintRepository> { ComplaintRepository(get()) }
     single<IEquipmentsRepository> { EquipmentsRepository(get()) }
     single { GymRepository(get()) }
-    viewModel { EquipmentsListViewModel(get()) }
+    viewModel { (user: User) ->
+        EquipmentsListViewModel(user, get(), get())
+    }
     viewModel { AddGymViewModel(get()) }
     viewModel { AddEquipmentViewModel(get(), get()) }
     viewModel { AMCListViewModel(get()) }
     viewModel { ForgotPasswordViewModel(get()) }
     viewModel { UserListViewModel(get()) }
     viewModel { AddUserViewModel(get(), get()) }
-    viewModel { AddAmcViewModel(get()) }
+    viewModel { AddAmcViewModel(get(), get()) }
 
     factory { (clazz: Class<*>) ->
         @Suppress("UNCHECKED_CAST")
