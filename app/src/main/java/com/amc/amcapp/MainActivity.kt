@@ -1,5 +1,6 @@
 package com.amc.amcapp
 
+import FullImageUploaderScreen
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,10 +9,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.data.datastore.PreferenceHelper
 import com.amc.amcapp.equipments.IEquipmentsRepository
+import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.LandingActivity
 import com.amc.amcapp.ui.NavigationStack
+import com.amc.amcapp.ui.technician.TechnicianActivity
 import com.amc.amcapp.ui.theme.AMCTheme
 import com.amc.amcapp.viewmodel.SplashState
 import com.amc.amcapp.viewmodel.SplashViewModel
@@ -28,9 +32,11 @@ class MainActivity : ComponentActivity() {
     private val complaintRepository: IComplaintRepository by inject()
 
     private val equipmentsRepository: IEquipmentsRepository by inject()
+
+
     private var keepSplash = true
 
-    private val preferenceHelper: PreferenceHelper by inject()
+    private val userRepository: IUserRepository by inject()
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,8 +56,22 @@ class MainActivity : ComponentActivity() {
                 when (state) {
                     SplashState.LoggedIn -> {
                         keepSplash = false // 👈 release splash only after navigation
-                        startActivity(Intent(this@MainActivity, LandingActivity::class.java))
-                        finish()
+                        userRepository.currentUser.value?.let {
+                            if (it.userType == UserType.ADMIN) {
+                                startActivity(
+                                    Intent(
+                                        this@MainActivity, LandingActivity::class.java
+                                    )
+                                )
+                            } else if (it.userType == UserType.TECHNICIAN) {
+                                startActivity(
+                                    Intent(
+                                        this@MainActivity, TechnicianActivity::class.java
+                                    )
+                                )
+                            }
+                            finish()
+                        }
                     }
 
                     SplashState.LoggedOut -> {

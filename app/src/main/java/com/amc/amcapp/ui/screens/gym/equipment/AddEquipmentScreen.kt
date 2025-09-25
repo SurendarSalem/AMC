@@ -49,6 +49,7 @@ import com.amc.amcapp.ui.screens.ListTypeKey
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.AppImagePicker
 import com.amc.amcapp.util.BubbleProgressBar
+import com.amc.amcapp.util.Constants
 import com.amc.amcapp.util.openAppSettings
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -266,7 +267,7 @@ private fun SparesSection(
                 horizontal = LocalDimens.current.spacingMedium.dp
             )
             .clickable {
-                savedStateHandle["listTypeKey"] = ListTypeKey.SPARES
+                savedStateHandle[Constants.LIST_TYPE_KEY] = ListTypeKey.SPARES
                 savedStateHandle["selectedSpares"] = selectedSpares
                 navController.navigate(ListDest.ListScreen.route) {
                     launchSingleTop = true
@@ -314,7 +315,7 @@ private fun ComplaintsSection(
                 horizontal = LocalDimens.current.spacingMedium.dp
             )
             .clickable {
-                savedStateHandle["listTypeKey"] = ListTypeKey.COMPLAINTS
+                savedStateHandle[Constants.LIST_TYPE_KEY] = ListTypeKey.COMPLAINTS
                 savedStateHandle["selectedComplaints"] = selectedComplaints
                 navController.navigate(ListDest.ListScreen.route) {
                     launchSingleTop = true

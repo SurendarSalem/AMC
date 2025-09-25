@@ -10,12 +10,14 @@ import android.provider.MediaStore
 import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
 import coil.ImageLoader
+import coil.decode.DecodeUtils.calculateInSampleSize
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 
 object ImageUtils {
@@ -53,8 +55,7 @@ object ImageUtils {
 
     fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
         val ratio = minOf(
-            maxWidth.toFloat() / bitmap.width,
-            maxHeight.toFloat() / bitmap.height
+            maxWidth.toFloat() / bitmap.width, maxHeight.toFloat() / bitmap.height
         )
         val width = (bitmap.width * ratio).toInt()
         val height = (bitmap.height * ratio).toInt()
@@ -69,12 +70,72 @@ object ImageUtils {
             return@withContext stream.toByteArray()
         }
 
-    suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? =
-        withContext(Dispatchers.IO) {
-            val loader = ImageLoader(context)
-            val request = ImageRequest.Builder(context).data(url).allowHardware(false).build()
-            val result = (loader.execute(request) as? SuccessResult)?.drawable
-            return@withContext (result as? BitmapDrawable)?.bitmap
+    fun decodeAndCompressImage(
+        context: Context,
+        uri: Uri,
+        reqWidth: Int,
+        reqHeight: Int,
+        quality: Int
+    ): Uri? {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
+        context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, options)
         }
+
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight)
+        options.inJustDecodeBounds = false
+
+        val bitmap = context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, options)
+        } ?: return null
+
+        // Fix rotation using EXIF
+        val rotatedBitmap = try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val exif = ExifInterface(inputStream)
+                val orientation = exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL
+                )
+                val matrix = Matrix()
+                when (orientation) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                    ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                    ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                }
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            }
+        } catch (e: Exception) {
+            bitmap
+        }
+
+        val file = File(context.cacheDir, "compressed_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(file).use { out ->
+            rotatedBitmap?.compress(Bitmap.CompressFormat.JPEG, quality, out)
+        }
+
+        rotatedBitmap?.recycle()
+        bitmap.recycle()
+
+        return Uri.fromFile(file)
+    }
+
+    fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            while ((halfHeight / inSampleSize) >= reqHeight &&
+                (halfWidth / inSampleSize) >= reqWidth
+            ) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
+    }
 }
 

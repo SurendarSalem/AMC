@@ -79,7 +79,7 @@ val appModule = module {
     viewModel { ForgotPasswordViewModel(get()) }
     viewModel { UserListViewModel(get()) }
     viewModel { AddUserViewModel(get(), get()) }
-    viewModel { AddAmcViewModel(get(), get()) }
+    viewModel { AddAmcViewModel(get(), get(), get()) }
 
     factory { (clazz: Class<*>) ->
         @Suppress("UNCHECKED_CAST")

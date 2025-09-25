@@ -1,37 +1,89 @@
 package com.amc.amcapp.ui.screens.amc
 
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.EditCalendar
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.NotifyState
+import com.amc.amcapp.model.RecordItem
 import com.amc.amcapp.model.Status
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppProgressBar
 import com.amc.amcapp.ui.ListDest
+import com.amc.amcapp.ui.RecordUiItem
 import com.amc.amcapp.ui.screens.ListTypeKey
 import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
+import com.amc.amcapp.util.Constants
+import com.google.accompanist.flowlayout.FlowMainAxisAlignment
+import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +101,8 @@ fun AddAmcScreen(
     val addAmcState = addAmcViewModel.addAmcState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val recordItems = addAmcViewModel.recordItems.collectAsState()
+    val currentUser = addAmcViewModel.getCurrentUser()
 
     LaunchedEffect(amc?.id) {
         if (amc != null) {
@@ -65,7 +119,7 @@ fun AddAmcScreen(
             addAmcViewModel.onGymNameChanged(user?.name ?: "")
         }
 
-        if (user?.userType == UserType.TECHNICIAN) {
+        if (currentUser?.userType == UserType.TECHNICIAN) {
             if (amc?.status == Status.PENDING) {
                 addAmcViewModel.getEquipments(amc.gymId)
             }
@@ -93,11 +147,18 @@ fun AddAmcScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+
+    val scrollState = rememberScrollState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .verticalScroll(scrollState)
+    ) {
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(LocalDimens.current.spacingMedium.dp)
         ) {
             // --- Customer Info ---
@@ -109,13 +170,11 @@ fun AddAmcScreen(
 
             // --- Technician Selection ---
             SectionCard(
-                title = "Select Technician",
-                onClick = {
+                title = "Select Technician", onClick = {
                     savedStateHandle["listTypeKey"] = ListTypeKey.USERS
                     savedStateHandle["filterType"] = UserType.TECHNICIAN
                     navController.navigate(ListDest.ListScreen.route)
-                }
-            ) {
+                }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = amcState.value.assignedName.ifEmpty { "Technician" },
@@ -131,6 +190,7 @@ fun AddAmcScreen(
 
 
             Spacer(modifier = Modifier.height(16.dp))
+
 
             // --- AMC Date ---
             AmcDatePicker(
@@ -149,11 +209,10 @@ fun AddAmcScreen(
                 })
 
             Spacer(modifier = Modifier.height(24.dp))
-            // --- Submit button ---
 
-
-
-
+            if (currentUser?.userType == UserType.TECHNICIAN) {
+                RecordsPagerDynamicFlex(recordItems.value)
+            }
 
 
             Button(
@@ -184,6 +243,7 @@ fun AddAmcScreen(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -294,6 +354,54 @@ fun SectionCard(
             Text(title, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
             content()
+        }
+    }
+}
+
+
+@Composable
+fun RecordsPagerDynamicFlex(recordsState: List<RecordItem>, modifier: Modifier = Modifier) {
+
+    val pagerState = rememberPagerState(
+        initialPage = 0, initialPageOffsetFraction = 0f, pageCount = { recordsState.size })
+    Column {
+        HorizontalPager(
+            state = pagerState, contentPadding = PaddingValues(horizontal = 16.dp)
+        ) { pageIndex ->
+            val recordItem = recordsState[pageIndex]
+            RecordUiItem(pageIndex, recordItem)
+        }
+        SimpleHorizontalPagerIndicator(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(16.dp),
+            pagerState = pagerState,
+            activeColor = MaterialTheme.colorScheme.primary,
+            inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+
+        )
+    }
+}
+
+@Composable
+fun SimpleHorizontalPagerIndicator(
+    pagerState: PagerState,
+    activeColor: Color,
+    inactiveColor: Color,
+    modifier: Modifier = Modifier,
+    indicatorSize: Dp = 8.dp,
+    indicatorSpacing: Dp = 8.dp
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(indicatorSpacing), modifier = modifier
+    ) {
+        repeat(pagerState.pageCount) { index ->
+            val color = if (pagerState.currentPage == index) activeColor else inactiveColor
+            Box(
+                modifier = Modifier
+                    .size(indicatorSize)
+                    .background(color = color, shape = CircleShape)
+            )
         }
     }
 }

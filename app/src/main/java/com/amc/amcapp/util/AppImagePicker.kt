@@ -22,10 +22,8 @@ import androidx.compose.material.icons.rounded.Photo
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,8 +43,6 @@ import coil.request.ImageRequest
 import com.amc.amcapp.R
 import com.amc.amcapp.model.Actions
 import com.amc.amcapp.model.NotifyState
-import com.amc.amcapp.util.ImageUtils.loadBitmapFromUrl
-import kotlinx.coroutines.launch
 import java.io.File
 
 @Composable
@@ -59,7 +55,6 @@ fun AppImagePicker(
     val context = LocalContext.current
     var cameraImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     var cameraImagePath by rememberSaveable { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
 
     val requestCameraPermissionLauncher = requestPermissionLauncher { granted ->
         if (!granted) onErrorReturned(

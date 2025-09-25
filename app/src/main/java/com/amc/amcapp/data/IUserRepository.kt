@@ -5,67 +5,51 @@ import com.amc.amcapp.data.datastore.PreferenceKeys
 import com.amc.amcapp.dataStore
 import com.amc.amcapp.model.User
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
 
 interface IUserRepository {
-
     suspend fun addUserToFirebase(user: User): User?
     suspend fun updateUser(user: User): Flow<Boolean>
     suspend fun refreshCurrentUserDetails(userId: String): User?
     suspend fun getAllUsers(): List<User>
-    var userName: Flow<String>
+    val userName: Flow<String>
+    var currentUser: MutableStateFlow<User?>
 }
 
 class UserRepository(
-    private val context: Context, private val firestore: FirebaseFirestore
+    private val context: Context,
+    private val firestore: FirebaseFirestore
 ) : IUserRepository {
 
-    val currentUser = MutableStateFlow<User?>(null)
-
+    override var currentUser: MutableStateFlow<User?> = MutableStateFlow(null)
 
     override suspend fun addUserToFirebase(user: User): User? {
+        return try {
+            firestore.collection("users").document(user.firebaseId).set(user).await()
+            user
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    override suspend fun updateUser(user: User): Flow<Boolean> = flow {
         try {
             firestore.collection("users").document(user.firebaseId).set(user).await()
-            return user
+            emit(true)
         } catch (e: Exception) {
-            return null
+            emit(false)
         }
     }
-
-    override suspend fun updateUser(user: User): Flow<Boolean> {
-        return callbackFlow {
-            try {
-                val task = firestore.collection("users").document(user.firebaseId).set(user)
-                    .addOnSuccessListener {
-                        trySend(true)
-                        close()
-                    }.addOnFailureListener {
-                        trySend(false)
-                        close(it)
-                    }
-                awaitClose { task.isComplete }
-            } catch (e: Exception) {
-                trySend(false)
-                close(e)
-            }
-        }
-    }
-
 
     override suspend fun refreshCurrentUserDetails(userId: String): User? {
         return try {
             val document = firestore.collection("users").document(userId).get().await()
             if (document.exists()) {
-                currentUser.value = document.toObject(User::class.java)
-                return currentUser.value
-            } else {
-                null
-            }
+                val fetchedUser = document.toObject(User::class.java)
+                currentUser.value = fetchedUser
+                fetchedUser
+            } else null
         } catch (e: Exception) {
             null
         }
@@ -80,7 +64,7 @@ class UserRepository(
         }
     }
 
-    override var userName: Flow<String> = context.dataStore.data.map { preferences ->
+    override val userName: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[PreferenceKeys.FIREBASE_USER_ID] ?: "Guest"
     }
 }

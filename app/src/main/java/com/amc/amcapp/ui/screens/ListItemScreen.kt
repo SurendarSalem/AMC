@@ -31,7 +31,7 @@ import org.koin.core.parameter.parametersOf
 fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) -> Unit) {
     val scope = rememberCoroutineScope()
     val key =
-        navController.previousBackStackEntry?.savedStateHandle?.get<ListTypeKey>("listTypeKey")
+        navController.previousBackStackEntry?.savedStateHandle?.get<ListTypeKey>(Constants.LIST_TYPE_KEY)
             ?: return
 
     val (table, clazz, filterBy) = when (key) {

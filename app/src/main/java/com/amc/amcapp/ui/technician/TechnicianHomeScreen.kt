@@ -65,12 +65,6 @@ fun TechnicianHomeScreen() {
             composable(TechnicianBottomDest.Amc.route) {
                 AMCListScreen(navController)
             }
-            composable(TechnicianBottomDest.Services.route) {
-                AMCListScreen(navController)
-            }
-            composable(TechnicianBottomDest.Profile.route) {
-                AMCListScreen(navController)
-            }
             composable(UserDest.AddAMC.route) {
                 navController.previousBackStackEntry?.savedStateHandle?.let {
                     val user = it.get<User>("user")

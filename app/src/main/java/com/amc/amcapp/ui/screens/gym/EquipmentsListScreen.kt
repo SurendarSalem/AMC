@@ -148,7 +148,7 @@ fun EquipmentsListScreen(
                     .align(Alignment.BottomEnd)
                     .padding(LocalDimens.current.spacingLarge.dp), onClick = {
                     savedStateHandle?.apply {
-                        this["listTypeKey"] = ListTypeKey.EQUIPMENTS
+                        this[Constants.LIST_TYPE_KEY] = ListTypeKey.EQUIPMENTS
                         if (equipmentsListState is ApiResult.Success) {
                             this[Constants.SELECTED_EQUIPMENTS] =
                                 (equipmentsListState as ApiResult.Success<List<Equipment>>).data

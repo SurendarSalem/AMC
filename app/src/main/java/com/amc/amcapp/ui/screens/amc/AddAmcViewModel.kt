@@ -1,10 +1,15 @@
 package com.amc.amcapp.ui.screens.amc
 
 import androidx.lifecycle.ViewModel
+import com.amc.amcapp.Equipment
 import com.amc.amcapp.data.IAmcRepository
+import com.amc.amcapp.data.IUserRepository
+import com.amc.amcapp.data.UserRepository
 import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.NotifyState
+import com.amc.amcapp.model.RecordItem
+import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.ApiResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,7 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class AddAmcViewModel(
     val amcRepository: IAmcRepository,
-    val equipmentsRepository: IEquipmentsRepository
+    val equipmentsRepository: IEquipmentsRepository,
+    val userRepository: IUserRepository
 ) : ViewModel() {
     private val _addAmcState: MutableStateFlow<ApiResult<AMC>> = MutableStateFlow(ApiResult.Empty)
     val addAmcState = _addAmcState.asStateFlow()
@@ -22,6 +28,13 @@ class AddAmcViewModel(
 
     var notifyState = MutableSharedFlow<NotifyState>()
     val amcState = _amcState.asStateFlow()
+
+    private var _equipmentsState = MutableStateFlow<List<Equipment>>(emptyList())
+
+    val equipmentsState = _equipmentsState.asStateFlow()
+
+    var _recordItems = MutableStateFlow<List<RecordItem>>(emptyList())
+    val recordItems = _recordItems.asStateFlow()
 
     fun onCreatedDateChange(date: Long) {
         _amcState.value = _amcState.value.copy(createdDate = date)
@@ -78,10 +91,29 @@ class AddAmcViewModel(
     }
 
     suspend fun getEquipments(gymId: String = "") {
-        equipmentsRepository.getEquipments(gymId).collect {result ->
+        equipmentsRepository.getEquipments(gymId).collect { result ->
             if (result is ApiResult.Success) {
-
+                _equipmentsState.value = result.data
+                _equipmentsState.value.forEach { equipment ->
+                    _recordItems.value = recordItems.value + RecordItem(
+                        equipmentId = equipment.id,
+                        equipmentName = equipment.name,
+                        beforeImageUrl = "",
+                        afterImageUrl = "",
+                        allocatesSpares = equipment.spares,
+                        requireSpares = emptyList()
+                    )
+                }
             }
         }
     }
+
+    fun getCurrentUser(): User? {
+        if (userRepository is UserRepository) {
+            return userRepository.currentUser.value
+        }
+        return null
+    }
+
+
 }
