@@ -5,6 +5,7 @@ import android.os.Parcelable
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.equipments.spares.Spare
 import kotlinx.parcelize.Parcelize
+import kotlin.String
 
 @Parcelize
 data class AMC(
@@ -22,7 +23,7 @@ data class AMC(
     val gymImage: String = "",
     val assigneeImage: String = "",
     val equipments: List<Equipment> = emptyList(),
-    val recordItems: List<RecordItem> = emptyList()
+    var recordItems: List<RecordItem> = emptyList()
 ) : Parcelable
 
 enum class Status {
@@ -31,12 +32,13 @@ enum class Status {
 
 @Parcelize
 data class RecordItem(
-    val equipmentId: String,
-    val equipmentName: String,
-    val beforeImageUrl: String,
-    val afterImageUrl: String,
-    val allocatesSpares: List<Spare> = emptyList(),
-    val requireSpares: List<SpareDetails> = emptyList()
+    var equipmentId: String = "",
+    var equipmentName: String = "",
+    var beforeImageUrl: String = "",
+    var afterImageUrl: String = "",
+    var beforeImageUri: String = "",
+    var afterImageUri: String = "",
+    var addedSpares: List<SpareDetails> = emptyList()
 ) : Parcelable
 
 @Parcelize
@@ -46,18 +48,20 @@ data class RecordUiItem(
 
 @Parcelize
 data class RecordImage(
-    val imageUrl: String? = null,
-    val imageUri: Uri? = null,
+    val imageUrl: String = "",
+    val imageUri: String = "",
     val shouldUseUrl: Boolean = false,
     val shouldUseUri: Boolean = false
 ) : Parcelable
 
-fun RecordItem.toRecordUiItem() = RecordUiItem(
-    recordItem = this,
-    beforeImage = RecordImage(beforeImageUrl),
-    afterImage = RecordImage(afterImageUrl)
+fun RecordUiItem.toRecordItem() = RecordItem(
+    equipmentId = recordItem.equipmentId,
+    equipmentName = recordItem.equipmentName,
+    beforeImageUrl = beforeImage.imageUrl,
+    afterImageUrl = afterImage.imageUrl,
+    beforeImageUri = beforeImage.imageUri,
+    afterImageUri = afterImage.imageUri
 )
-
 
 @Parcelize
 data class SpareDetails(

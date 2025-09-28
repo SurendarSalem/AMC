@@ -1,28 +1,18 @@
 package com.amc.amcapp.util.image
 
 import android.Manifest
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -40,19 +31,19 @@ import com.amc.amcapp.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
-import androidx.exifinterface.media.ExifInterface
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.ImageUtils.decodeAndCompressImage
 import getTempImageUri
 
 @Composable
 fun AppImagePicker(
+    buttonEnabled: Boolean,
+    index: Int,
     modifier: Modifier = Modifier,
-    imageUri: Uri?,
-    imageUrl: String?,
+    imageUri: String,
+    imageUrl: String,
     onImageReturned: (Uri) -> Unit,
-    onPermissionDenied: (permission: String) -> Unit,
+    onPermissionDenied: (String) -> Unit,
     maxWidth: Int = 512,
     maxHeight: Int = 512,
     contentScale: ContentScale = ContentScale.None,
@@ -71,8 +62,8 @@ fun AppImagePicker(
             onImageReturned(fileUri)
             scope.launch {
                 delay(500) // short delay to allow usage
-                File(fileUri.path!!).delete()
-                originalTempFile?.delete()
+                /*File(fileUri.path!!).delete()
+                originalTempFile?.delete()*/
             }
         }
     }
@@ -137,6 +128,7 @@ fun AppImagePicker(
             ).error(R.drawable.error_placeholder).crossfade(true)
                 .size(512, 512) // downsample for display
                 .build(),
+            placeholder = painterResource(R.drawable.error_placeholder),
             modifier = Modifier.fillMaxWidth(),
             contentDescription = "Uploaded or selected image",
             contentScale = contentScale
@@ -146,7 +138,8 @@ fun AppImagePicker(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center // Center all children horizontally
         ) {
-            Button(onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }) {
+            Button(
+                onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }) {
                 Text("Open Camera")
             }
 

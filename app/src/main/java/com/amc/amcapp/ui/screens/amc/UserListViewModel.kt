@@ -3,6 +3,7 @@ package com.amc.amcapp.ui.screens.amc
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amc.amcapp.data.IUserRepository
+import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.ApiResult
@@ -10,11 +11,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class UserListViewModel(val userRepository: IUserRepository) : ViewModel() {
+class UserListViewModel(
+    val userRepository: IUserRepository,
+    val equipmentRepository: IEquipmentsRepository
+) : ViewModel() {
     private val _usersState: MutableStateFlow<ApiResult<List<User>>> =
         MutableStateFlow(ApiResult.Loading)
     val amcListState: StateFlow<ApiResult<List<User>>> = _usersState.asStateFlow()
@@ -50,6 +55,15 @@ class UserListViewModel(val userRepository: IUserRepository) : ViewModel() {
         try {
             _usersState.value = ApiResult.Loading
             val users = userRepository.getAllUsers()
+            users.forEach { user ->
+                if (user.userType == UserType.GYM_OWNER) {
+                    equipmentRepository.getEquipmentsByIds(user.equipments).collect { result ->
+                        if (result is ApiResult.Success) {
+                            user.equipmentList = result.data
+                        }
+                    }
+                }
+            }
             _usersState.value = ApiResult.Success(users)
         } catch (e: Exception) {
             _usersState.value = ApiResult.Error(e.message ?: "Unknown error occurred")

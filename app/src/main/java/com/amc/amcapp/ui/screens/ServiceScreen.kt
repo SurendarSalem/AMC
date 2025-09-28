@@ -52,18 +52,17 @@ fun ServiceScreen(onTitleUpdated: (String) -> Unit) {
                 composable(BottomDest.Amc.route) { AMCListScreen(navController) }
                 composable(UserDest.AddAMC.route) {
                     navController.previousBackStackEntry?.savedStateHandle?.let {
-                        val user = it.get<User>("user")
                         val amc = it.get<AMC>("amc")
                         AddAmcScreen(
                             navController = navController,
-                            user = user, amc = amc,
+                            amc = amc,
                             isForEdit = true
                         )
                     }
                 }
                 composable(ListDest.ListScreen.route) { backStackEntry ->
                     ListItemScreen(navController) {
-                       onTitleUpdated(it)
+                        onTitleUpdated(it)
                     }
                 }
             }

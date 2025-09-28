@@ -6,18 +6,30 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.PersonOutline
-import androidx.compose.material3.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,8 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amc.amcapp.model.AMC
-import com.amc.amcapp.model.RecordImage
-import com.amc.amcapp.model.RecordItem
 import com.amc.amcapp.model.RecordUiItem
 import com.amc.amcapp.model.Status
 import com.amc.amcapp.ui.theme.LocalDimens
@@ -46,8 +56,7 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AMCItem(
-    item: AMC,
-    onClick: () -> Unit
+    item: AMC, onClick: () -> Unit
 ) {
     val dateText = remember(item.createdDate) {
         val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy").withLocale(Locale.getDefault())
@@ -81,8 +90,7 @@ fun AMCItem(
 
             Spacer(modifier = Modifier.width(LocalDimens.current.spacingMedium.dp))
             Column(
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = item.gymName,
@@ -112,9 +120,7 @@ fun AMCItem(
 
 
             Column(
-                modifier = Modifier
-                    .padding(4.dp),
-                horizontalAlignment = Alignment.End
+                modifier = Modifier.padding(4.dp), horizontalAlignment = Alignment.End
             ) {
                 StatusTag(status = item.status)
                 Spacer(modifier = Modifier.height(LocalDimens.current.spacingMedium.dp))
@@ -138,7 +144,7 @@ fun AMCItem(
 }
 
 @Composable
-private fun StatusTag(status: Status, modifier: Modifier = Modifier) {
+private fun StatusTag(status: Status) {
     val (container, content, label) = when (status) {
         Status.PENDING -> Triple(
             MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurface, "Pending"
@@ -155,8 +161,7 @@ private fun StatusTag(status: Status, modifier: Modifier = Modifier) {
     }
 
     AssistChip(
-        shape = RoundedCornerShape(16.dp),
-        onClick = {}, label = {
+        shape = RoundedCornerShape(16.dp), onClick = {}, label = {
             Text(
                 text = label,
                 fontSize = LocalDimens.current.tagTextSize.sp,
@@ -174,20 +179,18 @@ private fun StatusTag(status: Status, modifier: Modifier = Modifier) {
 
 
 @Composable
-fun RecordUiItem(index: Int, recordItem: RecordItem) {
-    var recordUiItem by remember {
-        mutableStateOf(
-            RecordUiItem(recordItem, RecordImage(), RecordImage())
-        )
-    }
+fun RecordUiItem(
+    enabled: Boolean,
+    index: Int, recordUiItem: RecordUiItem, onRecordUpdated: (Int, RecordUiItem) -> Unit
+) {
     Column(
         modifier = Modifier
-            .fillMaxWidth().wrapContentHeight()
+            .fillMaxWidth()
+            .wrapContentHeight()
             .border(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(4.dp)
             )
-            .padding(LocalDimens.current.spacingMedium.dp)
     ) {
         Text(
             modifier = Modifier
@@ -195,9 +198,9 @@ fun RecordUiItem(index: Int, recordItem: RecordItem) {
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(LocalDimens.current.spacingSmall.dp)
                 .wrapContentWidth(Alignment.CenterHorizontally),
-            text = (index + 1).toString() + ". " + recordItem.equipmentName,
+            text = (index + 1).toString() + ". " + recordUiItem.recordItem.equipmentName,
             color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.bodyLarge
+            fontSize = LocalDimens.current.textLarge.sp
         )
 
         Spacer(modifier = Modifier.height(LocalDimens.current.spacingMedium.dp))
@@ -206,21 +209,21 @@ fun RecordUiItem(index: Int, recordItem: RecordItem) {
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                "Before Service",
-                modifier = Modifier.padding(LocalDimens.current.spacingSmall.dp)
+                "Before Service", modifier = Modifier.padding(LocalDimens.current.spacingMedium.dp)
             )
             AppImagePicker(
+                buttonEnabled = enabled,
+                index = index,
                 modifier = Modifier.fillMaxWidth(),
                 imageUrl = recordUiItem.beforeImage.imageUrl,
                 imageUri = recordUiItem.beforeImage.imageUri,
                 onImageReturned = { uri ->
-                    recordUiItem = recordUiItem.copy(
+                    val recordUiItem = recordUiItem.copy(
                         beforeImage = recordUiItem.beforeImage.copy(
-                            imageUri = uri,
-                            shouldUseUrl = false,
-                            shouldUseUri = true
+                            imageUri = uri.toString(), shouldUseUrl = false, shouldUseUri = true
                         )
                     )
+                    onRecordUpdated(index, recordUiItem)
                 },
                 onPermissionDenied = { permission ->
 
@@ -230,20 +233,20 @@ fun RecordUiItem(index: Int, recordItem: RecordItem) {
                 contentScale = ContentScale.FillWidth
             )
             Text(
-                "After Service",
-                modifier = Modifier.padding(LocalDimens.current.spacingSmall.dp)
+                "After Service", modifier = Modifier.padding(LocalDimens.current.spacingMedium.dp)
             )
             AppImagePicker(
+                enabled,
+                index = index,
                 imageUrl = recordUiItem.afterImage.imageUrl,
                 imageUri = recordUiItem.afterImage.imageUri,
                 onImageReturned = { uri ->
-                    recordUiItem = recordUiItem.copy(
+                    val recordUiItem = recordUiItem.copy(
                         afterImage = recordUiItem.afterImage.copy(
-                            imageUri = uri,
-                            shouldUseUrl = false,
-                            shouldUseUri = true
+                            imageUri = uri.toString(), shouldUseUrl = false, shouldUseUri = true
                         )
                     )
+                    onRecordUpdated(index, recordUiItem)
                 },
                 onPermissionDenied = { permission ->
 
@@ -253,7 +256,6 @@ fun RecordUiItem(index: Int, recordItem: RecordItem) {
                 contentScale = ContentScale.FillWidth
             )
             Spacer(modifier = Modifier.height(LocalDimens.current.spacingMedium.dp))
-            FlexRadioLayout()
         }
     }
 
@@ -271,13 +273,10 @@ fun FlexRadioLayout() {
     ) {
         options.forEachIndexed { index, option ->
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(4.dp)
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(4.dp)
             ) {
                 Checkbox(
-                    checked = checkedStates[index],
-                    onCheckedChange = { checkedStates[index] = it }
-                )
+                    checked = checkedStates[index], onCheckedChange = { checkedStates[index] = it })
                 Text(text = option)
             }
         }

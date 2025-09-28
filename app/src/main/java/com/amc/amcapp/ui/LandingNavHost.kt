@@ -26,6 +26,7 @@ import com.amc.amcapp.ui.screens.customer.CustomerListScreen
 import com.amc.amcapp.ui.screens.gym.EquipmentsListScreen
 import com.amc.amcapp.ui.screens.gym.equipment.AddEquipmentScreen
 import com.amc.amcapp.ui.screens.service.AddServiceScreen
+import com.amc.amcapp.util.Constants
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -155,15 +156,13 @@ fun LandingNavHost(
         // Add AMC
         composable(UserDest.AddAMC.route) {
             navController.previousBackStackEntry?.savedStateHandle?.let {
-                val user = it.get<User>("user")
                 val amc = it.get<AMC>("amc")
-                user?.let { u ->
-                    AddAmcScreen(
-                        navController = navController,
-                        user = u,
-                        amc = amc
-                    )
-                }
+                val gymOwner = it.get<User?>(Constants.GYM_OWNER)
+                AddAmcScreen(
+                    navController = navController,
+                    amc = amc,
+                    gymOwner = gymOwner
+                )
             }
         }
 

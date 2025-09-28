@@ -66,6 +66,7 @@ import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.AppImagePicker
+import com.amc.amcapp.util.Constants
 import com.amc.amcapp.util.openAppSettings
 import com.amc.amcapp.viewmodel.AddUserViewModel
 import com.amc.amcapp.viewmodel.toUser
@@ -103,6 +104,9 @@ fun AddUserScreen(
         if (user != null) {
             updateMenu()
             addUserViewModel.preFillUserState(user)
+            /*if (user.userType == UserType.GYM_OWNER) {
+                addUserViewModel.getEquipments(user)
+            }*/
         } else {
             onMenuUpdated(false, Icons.Default.Edit) {}
         }
@@ -144,7 +148,7 @@ fun AddUserScreen(
         ) {
             Spacer(Modifier.height(20.dp))
             Box(modifier = Modifier.fillMaxWidth()) {
-                if (user != null && user.userType == UserType.GYM_OWNER) {
+                if (user != null && user.userType == UserType.GYM_OWNER && user.equipmentList.isNotEmpty()) {
                     Text(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
@@ -157,7 +161,7 @@ fun AddUserScreen(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                             .clickable {
                                 navController.currentBackStackEntry?.savedStateHandle?.apply {
-                                    set("user", user)
+                                    set(Constants.GYM_OWNER, user)
                                 }
                                 navController.navigate(UserDest.AddAMC.route)
                             },
@@ -213,7 +217,7 @@ fun AddUserScreen(
                                     restoreState = true
                                 }
                             },
-                        text = "Equipments",
+                        text = "Equipments (${user.equipmentList.size})",
                         fontSize = LocalDimens.current.textMedium.sp
                     )
                 }
@@ -336,7 +340,7 @@ fun AddUserScreen(
 
         // 🔹 Loader
         if (addUserResult is ApiResult.Loading) {
-           AppProgressBar(this)
+            AppProgressBar(this)
         }
 
         SnackbarHost(

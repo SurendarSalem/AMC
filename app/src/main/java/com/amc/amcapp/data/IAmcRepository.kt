@@ -1,8 +1,10 @@
 package com.amc.amcapp.data
 
+import android.net.Uri
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.ui.ApiResult
+import com.amc.amcapp.util.FirebaseHelper
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -14,9 +16,14 @@ interface IAmcRepository {
     suspend fun getAllAMCs(): List<AMC>
 
     suspend fun addAmc(amc: AMC): Flow<ApiResult<AMC>>
+
+    suspend fun uploadImageToFirebase(imageUri: Uri): String
 }
 
-class AmcRepository(private val firestore: FirebaseFirestore) : IAmcRepository {
+class AmcRepository(
+    private val firestore: FirebaseFirestore,
+    private val firebaseHelper: FirebaseHelper
+) : IAmcRepository {
     override suspend fun getAllAMCs(): List<AMC> {
         return try {
             val snapshot = firestore.collection("amcs").get().await()
@@ -42,5 +49,10 @@ class AmcRepository(private val firestore: FirebaseFirestore) : IAmcRepository {
         }
     }
 
+
+    override suspend fun uploadImageToFirebase(imageUri: Uri): String {
+        val downloadUrl = firebaseHelper.uploadImageToFirebase(imageUri)
+        return downloadUrl
+    }
 
 }

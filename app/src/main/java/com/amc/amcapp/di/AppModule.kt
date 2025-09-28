@@ -22,6 +22,7 @@ import com.amc.amcapp.ui.screens.amc.UserListViewModel
 import com.amc.amcapp.ui.screens.service.AddServiceViewModel
 import com.amc.amcapp.ui.screens.service.IServiceRepository
 import com.amc.amcapp.ui.screens.service.ServiceRepository
+import com.amc.amcapp.util.FirebaseHelper
 import com.amc.amcapp.viewmodel.AMCListViewModel
 import com.amc.amcapp.viewmodel.AddUserViewModel
 import com.amc.amcapp.viewmodel.LoginViewModel
@@ -59,8 +60,8 @@ val appModule = module {
             authRepository = get(), preferenceHelper = get(), userRepository = get()
         )
     }
-
-    single<IAmcRepository> { AmcRepository(get()) }
+    single { FirebaseHelper() }
+    single<IAmcRepository> { AmcRepository(get(), get()) }
     single { PreferenceHelper(androidContext()) }
     single<IUserRepository> { UserRepository(androidContext(), get()) }
     single<IServiceRepository> { ServiceRepository() }
@@ -77,9 +78,9 @@ val appModule = module {
     viewModel { AddEquipmentViewModel(get(), get()) }
     viewModel { AMCListViewModel(get()) }
     viewModel { ForgotPasswordViewModel(get()) }
-    viewModel { UserListViewModel(get()) }
-    viewModel { AddUserViewModel(get(), get()) }
-    viewModel { AddAmcViewModel(get(), get(), get()) }
+    viewModel { UserListViewModel(get(), get()) }
+    viewModel { AddUserViewModel(get(), get(), get()) }
+    viewModel { AddAmcViewModel(get(),  get()) }
 
     factory { (clazz: Class<*>) ->
         @Suppress("UNCHECKED_CAST")

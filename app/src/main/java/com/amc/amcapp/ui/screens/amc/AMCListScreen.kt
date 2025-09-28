@@ -19,10 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.amc.amcapp.model.AMC
+import com.amc.amcapp.ui.AMCItem
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppError
 import com.amc.amcapp.ui.AppLoadingBar
-import com.amc.amcapp.ui.AMCItem
 import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.viewmodel.AMCListViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -59,7 +59,6 @@ fun AMCListScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         items(amcs) { amc ->
-
                             AMCItem(item = amc, onClick = {
                                 navController.currentBackStackEntry?.savedStateHandle?.apply {
                                     set("amc", amc)

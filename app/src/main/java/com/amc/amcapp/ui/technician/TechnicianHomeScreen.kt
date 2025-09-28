@@ -38,25 +38,21 @@ import com.amc.amcapp.ui.screens.amc.AddAmcScreen
 fun TechnicianHomeScreen() {
     val navController = rememberNavController()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = titleForDestination(currentDestination(navController)),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+    Scaffold(topBar = {
+        TopAppBar(
+            title = {
+                Text(
+                    text = titleForDestination(currentDestination(navController)),
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
+            }, colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary
             )
-        },
-        bottomBar = {
-            BottomBar(navController, items = TechnicianBottomDest.entries)
-        }
-    ) { innerPadding ->
+        )
+    }, bottomBar = {
+        BottomBar(navController, items = TechnicianBottomDest.entries)
+    }) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = TechnicianBottomDest.Amc.route,
@@ -67,12 +63,9 @@ fun TechnicianHomeScreen() {
             }
             composable(UserDest.AddAMC.route) {
                 navController.previousBackStackEntry?.savedStateHandle?.let {
-                    val user = it.get<User>("user")
                     val amc = it.get<AMC>("amc")
                     AddAmcScreen(
-                        navController = navController,
-                        user = user, amc = amc,
-                        isForEdit = true
+                        navController = navController, amc = amc, isForEdit = true
                     )
                 }
             }
@@ -98,33 +91,27 @@ private fun BottomBar(navController: NavHostController, items: List<TechnicianBo
     ) {
         items.forEach { item ->
             NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
+                selected = currentRoute == item.route, onClick = {
+                navController.navigate(item.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
                     }
-                },
-                icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label
-                    )
-                },
-                label = {
-                    Text(item.label)
-                },
-                alwaysShowLabel = true,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                    selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                    unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                    indicatorColor = MaterialTheme.colorScheme.primary
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }, icon = {
+                Icon(
+                    imageVector = item.icon, contentDescription = item.label
                 )
+            }, label = {
+                Text(item.label)
+            }, alwaysShowLabel = true, colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                indicatorColor = MaterialTheme.colorScheme.primary
+            )
             )
         }
     }

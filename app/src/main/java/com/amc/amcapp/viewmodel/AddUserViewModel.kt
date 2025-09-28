@@ -6,6 +6,7 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.data.IUserRepository
+import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
@@ -37,7 +38,7 @@ data class AddUserState(
     val address: String = "",
     val gymName: String = "",
     val isLoading: Boolean = false,
-    val isAmcEnabled:Boolean = false
+    val isAmcEnabled: Boolean = false
 )
 
 fun AddUserState.toUser(): User {
@@ -69,7 +70,9 @@ fun AddUserState.toUser(): User {
 
 
 class AddUserViewModel(
-    private val authRepository: AuthRepository, private val userRepository: IUserRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: IUserRepository,
+    private val equipmentRepository: IEquipmentsRepository
 ) : ViewModel() {
     private val _addUserUiState: MutableStateFlow<ApiResult<User>> =
         MutableStateFlow(ApiResult.Empty)
@@ -258,5 +261,21 @@ class AddUserViewModel(
             address = user.address,
             isAmcEnabled = user.isAmcEnabled
         )
+    }
+
+    suspend fun loadEquipments(user: User) {
+        equipmentRepository.getEquipments(user.firebaseId).collect {
+            if (it is ApiResult.Success) {
+                user.equipments = it.data.map { equipment -> equipment.id }
+            }
+        }
+    }
+
+    suspend fun getEquipments(user: User) {
+        equipmentRepository.getEquipmentsByIds(user.equipments).collect {
+            if (it is ApiResult.Success) {
+                user.equipmentList = it.data
+            }
+        }
     }
 }

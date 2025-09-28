@@ -1,6 +1,8 @@
 package com.amc.amcapp.model
 
 import android.os.Parcelable
+import com.amc.amcapp.Equipment
+import com.google.firebase.firestore.Exclude
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -16,6 +18,7 @@ open class User(
     open var address: String = "",
     open var isAmcEnabled: Boolean = false,
     open var equipments: List<String> = emptyList(),
+    @Exclude open var equipmentList: List<Equipment> = emptyList(),
 ) : Parcelable
 
 

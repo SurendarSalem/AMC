@@ -3,56 +3,21 @@ package com.amc.amcapp.ui.screens.amc
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.EditCalendar
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -62,69 +27,48 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.amc.amcapp.model.AMC
-import com.amc.amcapp.model.NotifyState
-import com.amc.amcapp.model.RecordItem
-import com.amc.amcapp.model.Status
-import com.amc.amcapp.model.User
-import com.amc.amcapp.model.UserType
-import com.amc.amcapp.ui.ApiResult
-import com.amc.amcapp.ui.AppProgressBar
-import com.amc.amcapp.ui.ListDest
-import com.amc.amcapp.ui.RecordUiItem
+import com.amc.amcapp.model.*
+import com.amc.amcapp.ui.*
 import com.amc.amcapp.ui.screens.ListTypeKey
-import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
-import com.amc.amcapp.util.Constants
-import com.google.accompanist.flowlayout.FlowMainAxisAlignment
-import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAmcScreen(
     amc: AMC? = null,
+    gymOwner: User? = null,
     isForEdit: Boolean = false,
     navController: NavController,
-    user: User?,
     addAmcViewModel: AddAmcViewModel = koinViewModel()
 ) {
-    var selectedDate by rememberSaveable { mutableStateOf<Long?>(null) }
-    var selectedTime by rememberSaveable { mutableStateOf("") }
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ?: return
-    val amcState = addAmcViewModel.amcState.collectAsState()
-    val addAmcState = addAmcViewModel.addAmcState.collectAsState()
+    val scrollState = rememberScrollState()
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val recordItems = addAmcViewModel.recordItems.collectAsState()
+
+    val amcState by addAmcViewModel.amcState.collectAsState()
+    val addAmcState by addAmcViewModel.addAmcState.collectAsState()
+    val recordUiItems by addAmcViewModel.recordUiItems.collectAsState(emptyList())
     val currentUser = addAmcViewModel.getCurrentUser()
+    val equipmentState by addAmcViewModel.equipmentsState.collectAsState()
 
-    LaunchedEffect(amc?.id) {
-        if (amc != null) {
-            addAmcViewModel.preFillDetails(amc)
-            selectedDate = amc.createdDate
-            selectedTime = amc.createdTime
-        }
-    }
+    var selectedDate by rememberSaveable { mutableStateOf(amc?.createdDate) }
+    var selectedTime by rememberSaveable { mutableStateOf(amc?.createdTime ?: "") }
 
-    // Get technician from ListScreen result
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ?: return
+
+    // Observe technician selection
     LaunchedEffect(Unit) {
-        if (isForEdit) {
-        } else {
-            addAmcViewModel.onGymNameChanged(user?.name ?: "")
-        }
-
-        if (currentUser?.userType == UserType.TECHNICIAN) {
-            if (amc?.status == Status.PENDING) {
-                addAmcViewModel.getEquipments(amc.gymId)
+        amc?.let {
+            addAmcViewModel.preFillDetails(it)
+        } ?: run {
+            gymOwner?.let {
+                addAmcViewModel.onGymNameChanged(it.name)
             }
         }
-
         savedStateHandle.getLiveData<User>("selectedTechnician")
             .observe(navController.currentBackStackEntry!!) { technician ->
                 addAmcViewModel.onAssignedChange(
@@ -134,50 +78,41 @@ fun AddAmcScreen(
 
         addAmcViewModel.notifyState.collect { notifyState ->
             when (notifyState) {
-                is NotifyState.ShowToast -> {
-                    showSnackBar(scope, snackBarHostState, notifyState.message)
-                }
+                is NotifyState.ShowToast -> showSnackBar(
+                    scope, snackBarHostState, notifyState.message
+                )
 
-                is NotifyState.LaunchActivity -> {
-                    navController.popBackStack()
-                }
-
-                is NotifyState.Navigate -> {}
+                is NotifyState.LaunchActivity -> navController.popBackStack()
+                else -> {}
             }
         }
     }
 
-
-    val scrollState = rememberScrollState()
-
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
+            .fillMaxSize()
             .verticalScroll(scrollState)
+            .padding(LocalDimens.current.spacingMedium.dp)
     ) {
+        Column {
 
-        Column(
-            modifier = Modifier
-                .padding(LocalDimens.current.spacingMedium.dp)
-        ) {
-            // --- Customer Info ---
             SectionCard(title = "Customer") {
-                Text(amcState.value.gymName, style = MaterialTheme.typography.bodyLarge)
+                Text(amcState.gymName, style = MaterialTheme.typography.bodyLarge)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
 
-            // --- Technician Selection ---
-            SectionCard(
-                title = "Select Technician", onClick = {
+            // Technician Selection
+            SectionCard(title = "Select Technician", onClick = {
+                if (currentUser?.userType == UserType.ADMIN) {
                     savedStateHandle["listTypeKey"] = ListTypeKey.USERS
                     savedStateHandle["filterType"] = UserType.TECHNICIAN
                     navController.navigate(ListDest.ListScreen.route)
-                }) {
+                }
+            }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = amcState.value.assignedName.ifEmpty { "Technician" },
+                        text = amcState.assignedName.ifEmpty { "Technician" },
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f)
                     )
@@ -188,45 +123,54 @@ fun AddAmcScreen(
                 }
             }
 
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Date & Time Pickers
+            AmcDatePicker(selectedDate) {
+                selectedDate = it
+                addAmcViewModel.onCreatedDateChange(it)
+            }
 
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
 
-            // --- AMC Date ---
-            AmcDatePicker(
-                selectedDate = selectedDate, onDateSelected = {
-                    selectedDate = it
-                    addAmcViewModel.onCreatedDateChange(it)
-                })
+            AmcTimePicker(selectedTime) {
+                selectedTime = it
+                addAmcViewModel.onTimeChange(it)
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
 
-            // --- AMC Time ---
-            AmcTimePicker(
-                selectedTime = selectedTime, onTimeSelected = {
-                    selectedTime = it
-                    addAmcViewModel.onTimeChange(it)
-                })
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            if (currentUser?.userType == UserType.TECHNICIAN) {
-                RecordsPagerDynamicFlex(recordItems.value)
+            // Technician Records
+            if (recordUiItems.isNotEmpty() && (currentUser?.userType == UserType.TECHNICIAN || (currentUser?.userType == UserType.ADMIN && amcState.status == Status.PROGRESS))) {
+                TechnicianRecordsHeader()
+                Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+                RecordPagerContainer(
+                    recordUiItems,
+                    addAmcViewModel,
+                    addAmcState is ApiResult.Loading
+                )
             }
 
 
+            Spacer(Modifier.height(24.dp))
+
+            // Submit Button
             Button(
                 onClick = {
-                    val error = addAmcViewModel.validate(amcState.value)
+                    val error = addAmcViewModel.validate(amcState)
                     if (error == null) {
                         scope.launch {
-                            addAmcViewModel.addAmcToFirebase()
+                            if (isForEdit) {
+                                amc?.let { addAmcViewModel.onUpdateAmcClicked() }
+                            } else {
+                                addAmcViewModel.addAmcToFirebase(gymOwner?.equipmentList)
+                            }
                         }
                     } else {
                         showSnackBar(scope, snackBarHostState, error)
                     }
                 },
-                enabled = amcState.value.assignedName.isNotEmpty() && selectedDate != null && selectedTime.isNotEmpty(),
+                enabled = addAmcState !is ApiResult.Loading && amcState.assignedName.isNotEmpty() && selectedDate != null && selectedTime.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -235,47 +179,60 @@ fun AddAmcScreen(
                     fontSize = LocalDimens.current.textLarge.sp
                 )
             }
+
             SnackbarHost(hostState = snackBarHostState)
         }
 
-        if (addAmcState.value is ApiResult.Loading) {
+        if (addAmcState is ApiResult.Loading) {
             AppProgressBar(this)
         }
     }
 }
 
+@Composable
+fun TechnicianRecordsHeader() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary
+                    )
+                ), shape = RoundedCornerShape(8.dp)
+            )
+            .padding(
+                vertical = LocalDimens.current.spacingMedium.dp,
+                horizontal = LocalDimens.current.spacingLarge.dp
+            ), contentAlignment = Alignment.Center
+    ) {
+        Text("Equipment's Records", color = Color.White)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AmcDatePicker(
-    selectedDate: Long?, onDateSelected: (Long) -> Unit
-) {
+fun AmcDatePicker(selectedDate: Long?, onDateSelected: (Long) -> Unit) {
+    val context = LocalContext.current
     var showDialog by rememberSaveable { mutableStateOf(false) }
-    val state = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate, selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis >= System.currentTimeMillis()
-            }
-        })
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable { showDialog = true },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(text = selectedDate?.let {
-                SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(it)
+                SimpleDateFormat(
+                    "dd MMM yyyy", Locale.getDefault()
+                ).format(it)
             } ?: "Select AMC Date",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f))
             Icon(
-                imageVector = Icons.Default.EditCalendar,
+                Icons.Default.EditCalendar,
                 contentDescription = "Date selection",
                 tint = MaterialTheme.colorScheme.primary
             )
@@ -283,10 +240,16 @@ fun AmcDatePicker(
     }
 
     if (showDialog) {
+        val state = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate, selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long) =
+                    utcTimeMillis >= System.currentTimeMillis()
+            })
+
         DatePickerDialog(onDismissRequest = { showDialog = false }, confirmButton = {
             TextButton(onClick = {
-                showDialog = false
                 state.selectedDateMillis?.let { onDateSelected(it) }
+                showDialog = false
             }) { Text("OK") }
         }, dismissButton = {
             TextButton(onClick = { showDialog = false }) { Text("Cancel") }
@@ -297,53 +260,48 @@ fun AmcDatePicker(
 }
 
 @Composable
-fun AmcTimePicker(
-    selectedTime: String, onTimeSelected: (String) -> Unit
-) {
+fun AmcTimePicker(selectedTime: String, onTimeSelected: (String) -> Unit) {
     val context = LocalContext.current
+    var showDialog by rememberSaveable { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable {
-                    val calendar = Calendar.getInstance()
-                    val hour = calendar.get(Calendar.HOUR_OF_DAY)
-                    val minute = calendar.get(Calendar.MINUTE)
-                    TimePickerDialog(
-                        context, { _, selectedHour, selectedMinute ->
-                            calendar.set(Calendar.HOUR_OF_DAY, selectedHour)
-                            calendar.set(Calendar.MINUTE, selectedMinute)
-                            val formatted = SimpleDateFormat(
-                                "hh:mm a", Locale.getDefault()
-                            ).format(calendar.time)
-                            onTimeSelected(formatted)
-                        }, hour, minute, false
-                    ).show()
-                }, verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = selectedTime.ifEmpty { "Select AMC Time" },
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                imageVector = Icons.Default.AccessTime,
+                Icons.Default.AccessTime,
                 contentDescription = "Time selection",
                 tint = MaterialTheme.colorScheme.primary
             )
         }
     }
+
+    if (showDialog) {
+        val calendar = Calendar.getInstance()
+        TimePickerDialog(
+            context, { _, hour, minute ->
+                calendar.set(Calendar.HOUR_OF_DAY, hour)
+                calendar.set(Calendar.MINUTE, minute)
+                val formatted =
+                    SimpleDateFormat("hh:mm a", Locale.getDefault()).format(calendar.time)
+                onTimeSelected(formatted)
+                showDialog = false
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false
+        ).show()
+    }
 }
 
 @Composable
-fun SectionCard(
-    title: String, onClick: (() -> Unit)? = null, content: @Composable () -> Unit
-) {
+fun SectionCard(title: String, onClick: (() -> Unit)? = null, content: @Composable () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -358,27 +316,31 @@ fun SectionCard(
     }
 }
 
-
 @Composable
-fun RecordsPagerDynamicFlex(recordsState: List<RecordItem>, modifier: Modifier = Modifier) {
+fun RecordPagerContainer(
+    recordsState: List<RecordUiItem>,
+    amcViewModel: AddAmcViewModel,
+    enabled: Boolean
+) {
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { recordsState.size })
 
-    val pagerState = rememberPagerState(
-        initialPage = 0, initialPageOffsetFraction = 0f, pageCount = { recordsState.size })
     Column {
         HorizontalPager(
-            state = pagerState, contentPadding = PaddingValues(horizontal = 16.dp)
-        ) { pageIndex ->
-            val recordItem = recordsState[pageIndex]
-            RecordUiItem(pageIndex, recordItem)
+            state = pagerState,
+            key = { index -> recordsState[index].recordItem.equipmentId }) { pageIndex ->
+            val recordUiItem = recordsState[pageIndex]
+            RecordUiItem(enabled, pageIndex, recordUiItem) { index, recordItem ->
+                amcViewModel.onRecordUpdated(index, recordItem)
+            }
         }
+
         SimpleHorizontalPagerIndicator(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(16.dp),
             pagerState = pagerState,
             activeColor = MaterialTheme.colorScheme.primary,
-            inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-
+            inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(16.dp)
         )
     }
 }
@@ -392,15 +354,13 @@ fun SimpleHorizontalPagerIndicator(
     indicatorSize: Dp = 8.dp,
     indicatorSpacing: Dp = 8.dp
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(indicatorSpacing), modifier = modifier
-    ) {
+    Row(horizontalArrangement = Arrangement.spacedBy(indicatorSpacing), modifier = modifier) {
         repeat(pagerState.pageCount) { index ->
             val color = if (pagerState.currentPage == index) activeColor else inactiveColor
             Box(
                 modifier = Modifier
                     .size(indicatorSize)
-                    .background(color = color, shape = CircleShape)
+                    .background(color, CircleShape)
             )
         }
     }
