@@ -143,7 +143,9 @@ fun AddAmcScreen(
             Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
 
             // Technician Records
-            if (recordUiItems.isNotEmpty() && (currentUser?.userType == UserType.TECHNICIAN || (currentUser?.userType == UserType.ADMIN && amcState.status == Status.PROGRESS))) {
+            if (recordUiItems.isNotEmpty() && (currentUser?.userType == UserType.TECHNICIAN ||
+                        (currentUser?.userType == UserType.ADMIN && (amcState.status == Status.PROGRESS || amcState.status == Status.APPROVED)))
+            ) {
                 TechnicianRecordsHeader()
                 Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
                 RecordPagerContainer(
@@ -180,7 +182,7 @@ fun AddAmcScreen(
                 )
             }
             Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
-            if (currentUser?.userType == UserType.ADMIN) {
+            if (currentUser?.userType == UserType.ADMIN && amc?.status == Status.PROGRESS) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween

@@ -36,9 +36,10 @@ class LoginViewModel(
                 result.user?.let { user ->
                     preferenceHelper.saveFirebaseId(user.uid)
                     preferenceHelper.setLoggedIn(true)
-                    userRepository.refreshCurrentUserDetails(user.uid)
-                    notifyState.emit(NotifyState.ShowToast("Successfully Logged In"))
-                    notifyState.emit(NotifyState.LaunchActivity)
+                    val user = userRepository.refreshCurrentUserDetails(user.uid)
+                    if (user != null) {
+                        notifyState.emit(NotifyState.ShowToast("Successfully Logged In"))
+                    }
                 } ?: run {
                     notifyState.emit(NotifyState.ShowToast("User data is null"))
                 }

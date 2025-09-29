@@ -54,9 +54,7 @@ fun LandingNavHost(
         // Home Screen
         composable(DrawerDest.Home.route) {
             EqualSizeMenuGridScreen(
-                items = menuItems,
-                onClick = { navController.navigate(DrawerDest.Services.route) }
-            )
+                items = menuItems, onClick = { navController.navigate(DrawerDest.Services.route) })
         }
 
         // Services Screen
@@ -97,8 +95,7 @@ fun LandingNavHost(
                     onMenuEnabledChange(enabled)
                     onMenuIconChange(icon)
                     onMenuClickChange(onClick) // ✅ fixed: pass callback
-                }
-            )
+                })
         }
 
         // Add User
@@ -112,8 +109,7 @@ fun LandingNavHost(
                     onMenuEnabledChange(enabled)
                     onMenuIconChange(icon)
                     onMenuClickChange(onClick) // ✅
-                }
-            )
+                })
         }
 
         // Add Service
@@ -129,8 +125,7 @@ fun LandingNavHost(
                         onMenuEnabledChange(enabled)
                         onMenuIconChange(icon)
                         onMenuClickChange(onClick) // ✅
-                    }
-                )
+                    })
             }
         }
 
@@ -145,8 +140,7 @@ fun LandingNavHost(
                     onMenuEnabledChange(enabled)
                     onMenuIconChange(icon)
                     onMenuClickChange(onClick) // ✅
-                }
-            )
+                })
         }
 
         // Add AMC
@@ -155,9 +149,7 @@ fun LandingNavHost(
                 val amc = it.get<AMC>("amc")
                 val gymOwner = it.get<User?>(Constants.GYM_OWNER)
                 AddAmcScreen(
-                    navController = navController,
-                    amc = amc,
-                    gymOwner = gymOwner
+                    navController = navController, amc = amc, gymOwner = gymOwner
                 )
             }
         }

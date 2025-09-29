@@ -27,8 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 
 class AddAmcViewModel(
-    val amcRepository: IAmcRepository,
-    val userRepository: IUserRepository
+    val amcRepository: IAmcRepository, val userRepository: IUserRepository
 ) : ViewModel() {
     private val _addAmcState: MutableStateFlow<ApiResult<AMC>> = MutableStateFlow(ApiResult.Empty)
     val addAmcState = _addAmcState.asStateFlow()
@@ -142,7 +141,7 @@ class AddAmcViewModel(
         _amcState.value =
             _amcState.value.copy(recordItems = recordUiItems.value.map { recordUiItem ->
                 recordUiItem.toRecordItem()
-            }).copy(updatedAt = System.currentTimeMillis())
+            }).copy(updatedAt = System.currentTimeMillis(), status = Status.PROGRESS)
 
         val updatedRecordItems = _amcState.value.recordItems.map { recordItem ->
             async {
@@ -162,7 +161,7 @@ class AddAmcViewModel(
         _amcState.value = _amcState.value.copy(
             recordItems = updatedRecordItems,
             updatedAt = System.currentTimeMillis(),
-            status = Status.PENDING
+            status = Status.PROGRESS
         )
 
         amcRepository.addAmc(amcState.value).collect { result ->
@@ -189,7 +188,7 @@ class AddAmcViewModel(
     suspend fun approveReject(approved: Status) {
         _addAmcState.value = ApiResult.Loading
         _amcState.value = _amcState.value.copy(status = approved)
-        amcRepository.addAmc(amcState.value).collect { result ->
+        amcRepository.addAmc(_amcState.value).collect { result ->
             when (result) {
                 is ApiResult.Success -> {
                     _addAmcState.value = result

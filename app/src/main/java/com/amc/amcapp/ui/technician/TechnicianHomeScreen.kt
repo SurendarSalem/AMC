@@ -46,7 +46,10 @@ import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.ui.screens.ListItemScreen
 import com.amc.amcapp.ui.screens.amc.AMCListScreen
 import com.amc.amcapp.ui.screens.amc.AddAmcScreen
+import com.amc.amcapp.ui.showSnackBar
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.lang.IllegalArgumentException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -91,7 +94,7 @@ fun TechnicianHomeScreen(
             )
         )
     }, bottomBar = {
-        BottomBar(navController, items = TechnicianBottomDest.entries)
+        BottomBar(scope, navController, items = TechnicianBottomDest.entries)
     }) { innerPadding ->
         NavHost(
             navController = navController,
@@ -119,7 +122,11 @@ fun TechnicianHomeScreen(
 }
 
 @Composable
-private fun BottomBar(navController: NavHostController, items: List<TechnicianBottomDest>) {
+private fun BottomBar(
+    scope: CoroutineScope,
+    navController: NavHostController,
+    items: List<TechnicianBottomDest>
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -132,12 +139,16 @@ private fun BottomBar(navController: NavHostController, items: List<TechnicianBo
         items.forEach { item ->
             NavigationBarItem(
                 selected = currentRoute == item.route, onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                    try {
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
+                    } catch (ex: IllegalArgumentException) {
+
                     }
                 }, icon = {
                     Icon(

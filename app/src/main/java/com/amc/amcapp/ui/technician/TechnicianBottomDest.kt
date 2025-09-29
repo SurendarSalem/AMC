@@ -7,7 +7,7 @@ import androidx.compose.material.icons.filled.Person2
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class TechnicianBottomDest(val route: String, val label: String, val icon: ImageVector) {
-    Amc("amc", "AMC", Icons.Default.HomeRepairService),
+    Amc("amc", "My AMCs", Icons.Default.HomeRepairService),
     Services(
         "services",
         "General Services",

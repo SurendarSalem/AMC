@@ -71,8 +71,8 @@ fun AMCItem(
                 contentDescription =
                     "AMC: ${item.name}, Status: ${item.status}, Assignee: ${item.assignedName}, Updated: $dateText"
             }, shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.surface,
-    )
+            containerColor = MaterialTheme.colorScheme.surface,
+        )
     ) {
         Column {
             Row(
@@ -143,7 +143,7 @@ fun AMCItem(
 
         StatusTracker(Status.entries.filter { it != Status.CANCELLED }.map {
             it.label
-        }, 2)
+        }, Status.entries.indexOf(item.status))
         Spacer(modifier = Modifier.height(LocalDimens.current.spacingMedium.dp))
     }
 }
