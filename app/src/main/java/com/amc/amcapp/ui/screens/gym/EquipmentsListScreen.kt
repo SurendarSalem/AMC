@@ -58,6 +58,8 @@ import com.amc.amcapp.ui.screens.ListTypeKey
 import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.Constants
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -83,6 +85,8 @@ fun EquipmentsListScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val originaEquipments = emptyList<Equipment>()
     var newEquipmentSelected by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
 
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -112,90 +116,101 @@ fun EquipmentsListScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(LocalDimens.current.spacingMedium.dp)
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                equipmentsListViewModel.loadEquipments()
+                isRefreshing = false
+            }
+        }
     ) {
-        when (val state = equipmentsListState) {
-            is ApiResult.Loading -> AppProgressBar(this@Box)
-
-            is ApiResult.Error -> {
-                LaunchedEffect(state.message) {
-                    snackBarHostState.showSnackbar(state.message)
-                }
-            }
-
-            is ApiResult.Success -> {
-                val equipments = state.data
-                if (equipments.isEmpty()) {
-                    AppError("No Equipments found.")
-                } else {
-                    EquipmentsGrid(
-                        equipments = equipments, user = gymOwner, navController = navController
-                    )
-                }
-            }
-
-            ApiResult.Empty -> {}
-        }
-
-        when (updateEquipmentState) {
-            is ApiResult.Loading -> AppProgressBar(this@Box)
-            else -> {}
-        }
-
-
-        FloatingActionButton(
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(LocalDimens.current.spacingLarge.dp), onClick = {
-                if (currentUser?.userType == UserType.GYM_OWNER || gymOwner != null) {
-                    savedStateHandle?.apply {
-                        this[Constants.LIST_TYPE_KEY] = ListTypeKey.EQUIPMENTS
-                        if (equipmentsListState is ApiResult.Success) {
-                            this[Constants.SELECTED_EQUIPMENTS] =
-                                (equipmentsListState as ApiResult.Success<List<Equipment>>).data
-                        }
-                    }
-                    navController.navigate(ListDest.ListScreen.route)
-                } else if (currentUser?.userType == UserType.ADMIN) {
-                    navController.navigate(GymDest.AddEquipment.route)
-                }
-            }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
+                .fillMaxSize()
+                .padding(LocalDimens.current.spacingMedium.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Equipment")
-        }
+            when (val state = equipmentsListState) {
+                is ApiResult.Loading -> AppProgressBar(this@Box)
 
-        if (currentUser?.userType != UserType.ADMIN) {
-            Button(
-                enabled = newEquipmentSelected && equipmentsListState !is ApiResult.Loading && updateEquipmentState !is ApiResult.Loading,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(LocalDimens.current.spacingLarge.dp),
-                onClick = {
+                is ApiResult.Error -> {
+                    LaunchedEffect(state.message) {
+                        snackBarHostState.showSnackbar(state.message)
+                    }
+                }
 
-                    val currentEquipments = if (equipmentsListState is ApiResult.Success) {
-                        (equipmentsListState as ApiResult.Success<List<Equipment>>).data
+                is ApiResult.Success -> {
+                    val equipments = state.data
+                    if (equipments.isEmpty()) {
+                        AppError("No Equipments found.")
                     } else {
-                        emptyList()
+                        EquipmentsGrid(
+                            equipments = equipments, user = gymOwner, navController = navController
+                        )
                     }
-                    val equipmentIds = currentEquipments.map { it.id }
-                    gymOwner?.let {
-                        it.equipments = equipmentIds
-                        scope.launch {
-                            equipmentsListViewModel.updateEquipments(it)
-                        }
-                    }
+                }
 
-                }) {
-                Text("Update Equipments")
+                ApiResult.Empty -> {}
             }
-        }
 
-        SnackbarHost(
-            hostState = snackBarHostState, modifier = Modifier.align(Alignment.BottomCenter)
-        )
+            when (updateEquipmentState) {
+                is ApiResult.Loading -> AppProgressBar(this@Box)
+                else -> {}
+            }
+
+
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(LocalDimens.current.spacingLarge.dp), onClick = {
+                    if (currentUser?.userType == UserType.GYM_OWNER || gymOwner != null) {
+                        savedStateHandle?.apply {
+                            this[Constants.LIST_TYPE_KEY] = ListTypeKey.EQUIPMENTS
+                            if (equipmentsListState is ApiResult.Success) {
+                                this[Constants.SELECTED_EQUIPMENTS] =
+                                    (equipmentsListState as ApiResult.Success<List<Equipment>>).data
+                            }
+                        }
+                        navController.navigate(ListDest.ListScreen.route)
+                    } else if (currentUser?.userType == UserType.ADMIN) {
+                        navController.navigate(GymDest.AddEquipment.route)
+                    }
+                }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Equipment")
+            }
+
+            if (currentUser?.userType != UserType.ADMIN) {
+                Button(
+                    enabled = newEquipmentSelected && equipmentsListState !is ApiResult.Loading && updateEquipmentState !is ApiResult.Loading,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(LocalDimens.current.spacingLarge.dp),
+                    onClick = {
+
+                        val currentEquipments = if (equipmentsListState is ApiResult.Success) {
+                            (equipmentsListState as ApiResult.Success<List<Equipment>>).data
+                        } else {
+                            emptyList()
+                        }
+                        val equipmentIds = currentEquipments.map { it.id }
+                        gymOwner?.let {
+                            it.equipments = equipmentIds
+                            scope.launch {
+                                equipmentsListViewModel.updateEquipments(it)
+                            }
+                        }
+
+                    }) {
+                    Text("Update Equipments")
+                }
+            }
+
+            SnackbarHost(
+                hostState = snackBarHostState, modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 

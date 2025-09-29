@@ -74,9 +74,10 @@ dependencies {
     implementation(libs.play.services.location)
 
     implementation(libs.coil.compose)
+    implementation(libs.material3)
 
     implementation(libs.androidx.datastore.preferences)
-
+    implementation(libs.accompanist.swiperefresh)
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.exifinterface)
     implementation(libs.androidx.room.ktx)

@@ -51,7 +51,7 @@ class UserListViewModel(
         }
     }
 
-    private suspend fun getAllUsers() {
+    suspend fun getAllUsers() {
         try {
             _usersState.value = ApiResult.Loading
             val users = userRepository.getAllUsers()

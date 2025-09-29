@@ -29,6 +29,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +46,9 @@ import com.amc.amcapp.ui.AppLoadingBar
 import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.ui.screens.amc.UserItem
 import com.amc.amcapp.ui.screens.amc.UserListViewModel
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,95 +58,111 @@ fun CustomerListScreen(
     navController: NavHostController, userListViewModel: UserListViewModel = koinViewModel()
 ) {
 
-    Column {
-        val selectedUserType by userListViewModel._filterUserType.collectAsState()
-        val userTypes = UserType.entries.filter { it != UserType.ADMIN }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+    val scope = rememberCoroutineScope()
 
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(userTypes) { userType ->
-                OutlinedButton(
-                    onClick = { userListViewModel.setFilter(userType) },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (selectedUserType == userType)
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surface,
-                        contentColor = if (selectedUserType == userType)
-                            Color.White
-                        else MaterialTheme.colorScheme.onSurface
-                    ),
-                    shape = RoundedCornerShape(50),
-                    border = BorderStroke(
-                        1.dp,
-                        if (selectedUserType == userType) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outline
-                    ),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = userType.label,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                userListViewModel.getAllUsers()
+                isRefreshing = false
             }
         }
+    ) {
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .padding(16.dp)
-        ) {
-            val usersListState by userListViewModel.filteredUsers.collectAsState(initial = ApiResult.Loading)
-            when (usersListState) {
-                is ApiResult.Loading -> {
-                    AppLoadingBar(this@Box)
-                }
+        Column {
+            val selectedUserType by userListViewModel._filterUserType.collectAsState()
+            val userTypes = UserType.entries.filter { it != UserType.ADMIN }
 
-                is ApiResult.Error -> {
-                    AppError(errorMessage = (usersListState as ApiResult.Error).message)
-                }
-
-                is ApiResult.Success -> {
-                    val users = (usersListState as ApiResult.Success<List<User>>).data
-                    if (users.isEmpty()) {
-                        AppError(errorMessage = "No Users found.")
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            items(users) { user ->
-                                UserItem(user = user, onClick = {
-                                    navController.currentBackStackEntry?.savedStateHandle?.apply {
-                                        set("user", user)
-                                    }
-                                    navController.navigate(UserDest.EditUser.route)
-                                })
-                                Spacer(modifier = Modifier.padding(4.dp))
-                            }
-
-                        }
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(userTypes) { userType ->
+                    OutlinedButton(
+                        onClick = { userListViewModel.setFilter(userType) },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (selectedUserType == userType)
+                                MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surface,
+                            contentColor = if (selectedUserType == userType)
+                                Color.White
+                            else MaterialTheme.colorScheme.onSurface
+                        ),
+                        shape = RoundedCornerShape(50),
+                        border = BorderStroke(
+                            1.dp,
+                            if (selectedUserType == userType) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = userType.label,
+                            style = MaterialTheme.typography.labelLarge
+                        )
                     }
                 }
-
-                ApiResult.Empty -> {}
             }
 
-            FloatingActionButton(
-                modifier = Modifier.align(Alignment.BottomEnd), onClick = {
-                    navController.currentBackStackEntry?.savedStateHandle?.apply {
-                        set("user", null)
-                    }
-                    navController.navigate(UserDest.AddUser.route)
-                }, shape = CircleShape,
-                containerColor = MaterialTheme.colorScheme.primary
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .padding(16.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+                val usersListState by userListViewModel.filteredUsers.collectAsState(initial = ApiResult.Loading)
+                when (usersListState) {
+                    is ApiResult.Loading -> {
+                        AppLoadingBar(this@Box)
+                    }
+
+                    is ApiResult.Error -> {
+                        AppError(errorMessage = (usersListState as ApiResult.Error).message)
+                    }
+
+                    is ApiResult.Success -> {
+                        val users = (usersListState as ApiResult.Success<List<User>>).data
+                        if (users.isEmpty()) {
+                            AppError(errorMessage = "No Users found.")
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                items(users) { user ->
+                                    UserItem(user = user, onClick = {
+                                        navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                            set("user", user)
+                                        }
+                                        navController.navigate(UserDest.EditUser.route)
+                                    })
+                                    Spacer(modifier = Modifier.padding(4.dp))
+                                }
+
+                            }
+                        }
+                    }
+
+                    ApiResult.Empty -> {}
+                }
+
+                FloatingActionButton(
+                    modifier = Modifier.align(Alignment.BottomEnd), onClick = {
+                        navController.currentBackStackEntry?.savedStateHandle?.apply {
+                            set("user", null)
+                        }
+                        navController.navigate(UserDest.AddUser.route)
+                    }, shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
+                }
             }
         }
     }

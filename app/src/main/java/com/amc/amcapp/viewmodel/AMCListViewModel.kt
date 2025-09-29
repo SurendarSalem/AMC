@@ -10,15 +10,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class AMCListViewModel(amcRepository: IAmcRepository) : ViewModel() {
+class AMCListViewModel(val amcRepository: IAmcRepository) : ViewModel() {
     private val _amcListState: MutableStateFlow<ApiResult<List<AMC>>> =
         MutableStateFlow(ApiResult.Loading)
     val amcListState: StateFlow<ApiResult<List<AMC>>> = _amcListState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            fetchAllAMCs(amcRepository)
+            refresh()
         }
+    }
+
+    suspend fun refresh() {
+        fetchAllAMCs(amcRepository)
     }
 
     private suspend fun fetchAllAMCs(amcRepository: IAmcRepository) {

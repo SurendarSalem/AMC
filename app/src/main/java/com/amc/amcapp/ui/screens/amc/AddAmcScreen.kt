@@ -33,6 +33,7 @@ import com.amc.amcapp.model.*
 import com.amc.amcapp.ui.*
 import com.amc.amcapp.ui.screens.ListTypeKey
 import com.amc.amcapp.ui.theme.LocalDimens
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
@@ -80,9 +81,13 @@ fun AddAmcScreen(
 
         addAmcViewModel.notifyState.collect { notifyState ->
             when (notifyState) {
-                is NotifyState.ShowToast -> showSnackBar(
-                    scope, snackBarHostState, notifyState.message
-                )
+                is NotifyState.ShowToast -> {
+                    showSnackBar(
+                        scope, snackBarHostState, notifyState.message
+                    )
+                    delay(100)
+                    scrollState.animateScrollTo(scrollState.maxValue)
+                }
 
                 is NotifyState.LaunchActivity -> navController.popBackStack()
                 else -> {}
@@ -182,7 +187,9 @@ fun AddAmcScreen(
                 )
             }
             Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
-            if (currentUser?.userType == UserType.ADMIN && amc?.status == Status.PROGRESS) {
+            if (currentUser?.userType == UserType.ADMIN && (amc?.status == Status.PROGRESS
+                        || amc?.status == Status.APPROVED)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
