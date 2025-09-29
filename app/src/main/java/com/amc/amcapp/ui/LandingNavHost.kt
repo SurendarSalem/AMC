@@ -65,15 +65,15 @@ fun LandingNavHost(
         }
 
         composable(DrawerDest.DrawerEquipments.route) {
-            currentUser?.let {
-                EquipmentsListScreen(navController = navController, user = it)
-            }
+
+            EquipmentsListScreen(navController = navController, gymOwner = null)
+
         }
 
         composable(UserDest.Equipments.route) {
             val user = navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
             user?.let {
-                EquipmentsListScreen(navController = navController, user = it)
+                EquipmentsListScreen(navController = navController, gymOwner = it)
                 onMenuEnabledChange(false)
             }
         }
@@ -87,22 +87,18 @@ fun LandingNavHost(
 
         // Add/Edit Equipment
         composable(GymDest.AddEquipment.route) {
-            val user = navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
             val equipment =
                 navController.previousBackStackEntry?.savedStateHandle?.get<Equipment>("equipment")
 
-            user?.let {
-                AddEquipmentScreen(
-                    navController = navController,
-                    user = it,
-                    equipment = equipment,
-                    onMenuUpdated = { enabled, icon, onClick ->
-                        onMenuEnabledChange(enabled)
-                        onMenuIconChange(icon)
-                        onMenuClickChange(onClick) // ✅ fixed: pass callback
-                    }
-                )
-            }
+            AddEquipmentScreen(
+                navController = navController,
+                equipment = equipment,
+                onMenuUpdated = { enabled, icon, onClick ->
+                    onMenuEnabledChange(enabled)
+                    onMenuIconChange(icon)
+                    onMenuClickChange(onClick) // ✅ fixed: pass callback
+                }
+            )
         }
 
         // Add User

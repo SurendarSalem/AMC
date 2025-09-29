@@ -18,13 +18,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -34,11 +37,17 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -57,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -71,8 +81,10 @@ import com.amc.amcapp.EquipmentType
 import com.amc.amcapp.equipments.AddEquipmentState
 import com.amc.amcapp.equipments.AddEquipmentViewModel
 import com.amc.amcapp.equipments.ComplaintUiState
+import com.amc.amcapp.model.Status
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.theme.LocalDimens
+import com.amc.amcapp.ui.theme.Orange
 import com.amc.amcapp.util.BubbleProgressBar
 import com.amc.amcapp.viewmodel.AddUserState
 import com.amc.amcapp.viewmodel.AddUserViewModel
@@ -406,4 +418,87 @@ fun ComplaintItem(
         onCheckedChange(!complaintUiState.isSelected)
     })
 }
+
+@Composable
+private fun StatusTag(status: Status) {
+    val (container, content, label) = when (status) {
+        Status.PENDING -> Triple(
+            MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurface, "Pending"
+        )
+
+        Status.PROGRESS -> Triple(Orange, Color.White, "In Progress")
+        Status.COMPLETED -> Triple(
+            MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.onPrimary, "Completed"
+        )
+
+        Status.CANCELLED -> Triple(
+            MaterialTheme.colorScheme.error, MaterialTheme.colorScheme.onError, "Cancelled"
+        )
+
+        Status.APPROVED -> Triple(
+            MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.onPrimary, "Approved"
+        )
+    }
+
+    AssistChip(
+        shape = RoundedCornerShape(16.dp), onClick = {}, label = {
+        Text(
+            text = label,
+            fontSize = LocalDimens.current.tagTextSize.sp,
+            color = content,
+            maxLines = 1,
+            modifier = Modifier.padding(LocalDimens.current.tagPadding.dp)
+        )
+    }, colors = AssistChipDefaults.assistChipColors(
+        containerColor = container, labelColor = content
+    ), modifier = Modifier
+            .padding(LocalDimens.current.tagPadding.dp)
+            .height(24.dp)
+    )
+}
+
+@Composable
+fun TrailingIconsButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    trailingIcons: List<ImageVector> = emptyList(),
+    onClick: () -> Unit = {},
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+    trailingIconTint: Color = LocalContentColor.current,
+    textColor: Color
+) {
+    Button(
+        onClick = onClick, modifier = modifier, contentPadding = contentPadding, colors = colors
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
+            // Centered text
+            Text(
+                text = text,
+                color = textColor,
+            )
+
+            // Trailing icons (right aligned)
+            Row(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                trailingIcons.forEach { imageVector ->
+                    Icon(
+                        imageVector = imageVector,
+                        contentDescription = null,
+                        tint = trailingIconTint,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+
 

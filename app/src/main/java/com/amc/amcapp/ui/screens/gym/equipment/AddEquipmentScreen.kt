@@ -64,7 +64,6 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun AddEquipmentScreen(
     navController: NavController,
-    user: User,
     equipment: Equipment? = null,
     initialEditEnabled: Boolean = false,
     addEquipmentViewModel: AddEquipmentViewModel = koinViewModel(),
@@ -94,10 +93,6 @@ fun AddEquipmentScreen(
         savedStateHandle.getStateFlow("selectedComplaints", emptyList<Complaint>()).collect {
             addEquipmentViewModel.onComplaintsChanged(it)
         }
-    }
-
-    LaunchedEffect(user.firebaseId) {
-        addEquipmentViewModel.updateUser(user)
     }
 
     LaunchedEffect(equipment?.id) {

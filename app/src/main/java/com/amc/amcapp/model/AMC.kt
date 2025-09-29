@@ -26,8 +26,10 @@ data class AMC(
     var recordItems: List<RecordItem> = emptyList()
 ) : Parcelable
 
-enum class Status {
-    PENDING, PROGRESS, COMPLETED, CANCELLED
+enum class Status(val label: String) {
+    PENDING("Pending"), PROGRESS("Progress"), APPROVED("Approved"), COMPLETED("Completed"), CANCELLED(
+        "Cancelled"
+    )
 }
 
 @Parcelize

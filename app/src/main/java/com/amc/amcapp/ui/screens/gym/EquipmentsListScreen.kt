@@ -66,21 +66,22 @@ import org.koin.core.parameter.parametersOf
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EquipmentsListScreen(
-    navController: NavController, user: User
+    navController: NavController, gymOwner: User?
 ) {
     val equipmentsListViewModel: EquipmentsListViewModel = koinViewModel(
-        parameters = { parametersOf(user) })
+        parameters = { parametersOf(gymOwner) })
     val equipmentsListState by equipmentsListViewModel.equipmentsListState.collectAsState()
     val updateEquipmentState by equipmentsListViewModel.updateEquipmentState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val currentUser = equipmentsListViewModel.getCurrentUser()
 
     val selectedEquipments by savedStateHandle?.getStateFlow(
         Constants.SELECTED_EQUIPMENTS, emptyList<Equipment>()
     )?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
-    var originaEquipments = emptyList<Equipment>()
+    val originaEquipments = emptyList<Equipment>()
     var newEquipmentSelected by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -98,8 +99,10 @@ fun EquipmentsListScreen(
     }
 
     LaunchedEffect(selectedEquipments) {
-        newEquipmentSelected = originaEquipments.toSet() != selectedEquipments.toSet()
-        equipmentsListViewModel.onEquipmentsAdded(selectedEquipments)
+        if (selectedEquipments.isNotEmpty()) {
+            newEquipmentSelected = originaEquipments.toSet() != selectedEquipments.toSet()
+            equipmentsListViewModel.onEquipmentsAdded(selectedEquipments)
+        }
     }
 
     // Listen for toast events
@@ -129,7 +132,7 @@ fun EquipmentsListScreen(
                     AppError("No Equipments found.")
                 } else {
                     EquipmentsGrid(
-                        equipments = equipments, user = user, navController = navController
+                        equipments = equipments, user = gymOwner, navController = navController
                     )
                 }
             }
@@ -141,12 +144,13 @@ fun EquipmentsListScreen(
             is ApiResult.Loading -> AppProgressBar(this@Box)
             else -> {}
         }
-        if (user.userType != UserType.ADMIN) {
 
-            FloatingActionButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(LocalDimens.current.spacingLarge.dp), onClick = {
+
+        FloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(LocalDimens.current.spacingLarge.dp), onClick = {
+                if (currentUser?.userType == UserType.GYM_OWNER || gymOwner != null) {
                     savedStateHandle?.apply {
                         this[Constants.LIST_TYPE_KEY] = ListTypeKey.EQUIPMENTS
                         if (equipmentsListState is ApiResult.Success) {
@@ -155,11 +159,15 @@ fun EquipmentsListScreen(
                         }
                     }
                     navController.navigate(ListDest.ListScreen.route)
-                }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Equipment")
-            }
+                } else if (currentUser?.userType == UserType.ADMIN) {
+                    navController.navigate(GymDest.AddEquipment.route)
+                }
+            }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Equipment")
+        }
 
+        if (currentUser?.userType != UserType.ADMIN) {
             Button(
                 enabled = newEquipmentSelected && equipmentsListState !is ApiResult.Loading && updateEquipmentState !is ApiResult.Loading,
                 modifier = Modifier
@@ -173,10 +181,13 @@ fun EquipmentsListScreen(
                         emptyList()
                     }
                     val equipmentIds = currentEquipments.map { it.id }
-                    user.equipments = equipmentIds
-                    scope.launch {
-                        equipmentsListViewModel.updateEquipments(user)
+                    gymOwner?.let {
+                        it.equipments = equipmentIds
+                        scope.launch {
+                            equipmentsListViewModel.updateEquipments(it)
+                        }
                     }
+
                 }) {
                 Text("Update Equipments")
             }
@@ -190,7 +201,7 @@ fun EquipmentsListScreen(
 
 @Composable
 private fun EquipmentsGrid(
-    equipments: List<Equipment>, user: User, navController: NavController
+    equipments: List<Equipment>, user: User?, navController: NavController
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),

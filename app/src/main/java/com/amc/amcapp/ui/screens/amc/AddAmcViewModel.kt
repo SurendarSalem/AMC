@@ -185,4 +185,27 @@ class AddAmcViewModel(
             }
         }
     }
+
+    suspend fun approveReject(approved: Status) {
+        _addAmcState.value = ApiResult.Loading
+        _amcState.value = _amcState.value.copy(status = approved)
+        amcRepository.addAmc(amcState.value).collect { result ->
+            when (result) {
+                is ApiResult.Success -> {
+                    _addAmcState.value = result
+                    delay(300)
+                    notifyState.emit(NotifyState.ShowToast("AMC scheduled successfully!"))
+                }
+
+                is ApiResult.Error -> {
+                    _addAmcState.value = result
+                    delay(300)
+                    notifyState.emit(NotifyState.ShowToast(result.message))
+                }
+
+                else -> Unit
+            }
+        }
+
+    }
 }

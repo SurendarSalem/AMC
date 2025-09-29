@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -138,14 +139,14 @@ fun AppImagePicker(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center // Center all children horizontally
         ) {
-            Button(
+            OutlinedButton(
                 onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }) {
                 Text("Open Camera")
             }
 
             Spacer(modifier = Modifier.width(LocalDimens.current.spacingMedium.dp)) // spacing between buttons
 
-            Button(onClick = {
+            OutlinedButton(onClick = {
                 val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     Manifest.permission.READ_MEDIA_IMAGES
                 } else {

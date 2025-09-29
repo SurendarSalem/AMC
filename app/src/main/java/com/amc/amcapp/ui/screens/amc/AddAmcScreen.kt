@@ -14,7 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.EditCalendar
+import androidx.compose.material.icons.filled.GppGood
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -145,9 +147,7 @@ fun AddAmcScreen(
                 TechnicianRecordsHeader()
                 Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
                 RecordPagerContainer(
-                    recordUiItems,
-                    addAmcViewModel,
-                    addAmcState is ApiResult.Loading
+                    recordUiItems, addAmcViewModel, addAmcState is ApiResult.Loading
                 )
             }
 
@@ -179,10 +179,42 @@ fun AddAmcScreen(
                     fontSize = LocalDimens.current.textLarge.sp
                 )
             }
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+            if (currentUser?.userType == UserType.ADMIN) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TrailingIconsButton(
+                        modifier = Modifier.weight(0.8f),
+                        onClick = {
+                            scope.launch {
+                                addAmcViewModel.approveReject(Status.APPROVED)
+                            }
+                        },
+                        trailingIcons = listOf(Icons.Default.GppGood),
+                        text = "Approve",
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
+                        textColor = Color.Black
+                    )
+                    Spacer(Modifier.width(LocalDimens.current.spacingLarge.dp))
+                    TrailingIconsButton(
+                        modifier = Modifier.weight(0.8f),
+                        onClick = {
+                            scope.launch {
+                                addAmcViewModel.approveReject(Status.APPROVED)
+                            }
+                        },
+                        trailingIcons = listOf(Icons.Default.Cancel),
+                        text = "Reject",
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        textColor = Color.White
+                    )
+                }
+            }
 
             SnackbarHost(hostState = snackBarHostState)
         }
-
         if (addAmcState is ApiResult.Loading) {
             AppProgressBar(this)
         }
@@ -318,9 +350,7 @@ fun SectionCard(title: String, onClick: (() -> Unit)? = null, content: @Composab
 
 @Composable
 fun RecordPagerContainer(
-    recordsState: List<RecordUiItem>,
-    amcViewModel: AddAmcViewModel,
-    enabled: Boolean
+    recordsState: List<RecordUiItem>, amcViewModel: AddAmcViewModel, enabled: Boolean
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { recordsState.size })
 

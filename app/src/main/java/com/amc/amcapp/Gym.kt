@@ -39,7 +39,6 @@ data class Gym(
 @Parcelize
 data class Equipment(
     val id: String,
-    val gymId: String,
     val name: String,
     var imageUrl: String = "",
     val description: String = "",
@@ -49,7 +48,6 @@ data class Equipment(
 ) : Parcelable {
     constructor() : this(
         id = "",
-        gymId = "",
         name = "",
         imageUrl = "",
         description = "",

@@ -71,7 +71,7 @@ val appModule = module {
     single<IComplaintRepository> { ComplaintRepository(get()) }
     single<IEquipmentsRepository> { EquipmentsRepository(get()) }
     single { GymRepository(get()) }
-    viewModel { (user: User) ->
+    viewModel { (user: User?) ->
         EquipmentsListViewModel(user, get(), get())
     }
     viewModel { AddGymViewModel(get()) }

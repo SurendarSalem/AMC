@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class EquipmentsListViewModel(
-    private val user: User,
+    private val gymOwner: User?,
     private val equipmentsRepository: IEquipmentsRepository,
     private val userRepository: IUserRepository
 ) : ViewModel() {
@@ -42,14 +42,17 @@ class EquipmentsListViewModel(
 
     fun loadEquipments() {
         viewModelScope.launch {
-            if (user.userType == UserType.ADMIN) {
+            if (getCurrentUser()?.userType == UserType.ADMIN) {
                 equipmentsRepository.getEquipments("").collect { result ->
                     _equipmentsListState.value = result
                 }
             } else {
-                equipmentsRepository.getEquipmentsByIds(user.equipments).collect { result ->
-                    _equipmentsListState.value = result
+                gymOwner?.let {
+                    equipmentsRepository.getEquipmentsByIds(it.equipments).collect { result ->
+                        _equipmentsListState.value = result
+                    }
                 }
+
             }
         }
     }
@@ -74,5 +77,9 @@ class EquipmentsListViewModel(
                 }
             }
         }
+    }
+
+    fun getCurrentUser(): User? {
+        return userRepository.currentUser.value
     }
 }

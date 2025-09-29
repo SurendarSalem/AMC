@@ -42,7 +42,6 @@ data class ComplaintUiState(
 fun AddEquipmentState.toEquipment(): Equipment {
     return Equipment(
         id = id,
-        gymId = gymId,
         name = name,
         imageUrl = imageUrl,
         description = description,
@@ -190,7 +189,6 @@ class AddEquipmentViewModel(
     fun preFillDetails(equipment: Equipment) {
         _equipmentState.value = AddEquipmentState(
             id = equipment.id,
-            gymId = equipment.gymId,
             name = equipment.name,
             description = equipment.description,
             equipmentType = equipment.equipmentType,
@@ -198,12 +196,6 @@ class AddEquipmentViewModel(
             complaints = equipment.complaints.toMutableList(),
             spares = equipment.spares.toMutableList(),
             isForEdit = true
-        )
-    }
-
-    fun updateUser(user: User) {
-        _equipmentState.value = _equipmentState.value.copy(
-            gymId = user.firebaseId
         )
     }
 
