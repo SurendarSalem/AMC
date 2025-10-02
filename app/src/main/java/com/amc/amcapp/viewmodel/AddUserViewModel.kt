@@ -54,7 +54,8 @@ fun AddUserState.toUser(): User {
             imageUrl = imageUrl,
             phoneNumber = phoneNumber,
             address = address,
-            isAmcEnabled = isAmcEnabled
+            isAmcEnabled = isAmcEnabled,
+            amcPackage = amcPackage
         )
     } else {
         User(
