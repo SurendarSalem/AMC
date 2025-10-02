@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.equipments.IEquipmentsRepository
+import com.amc.amcapp.model.AmcPackage
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
@@ -38,7 +39,8 @@ data class AddUserState(
     val address: String = "",
     val gymName: String = "",
     val isLoading: Boolean = false,
-    val isAmcEnabled: Boolean = false
+    val isAmcEnabled: Boolean = false,
+    val amcPackage: AmcPackage? = null
 )
 
 fun AddUserState.toUser(): User {
@@ -171,6 +173,10 @@ class AddUserViewModel(
             errorMessage.value = "Please select the User type"
             return false
         }
+        if (addUserState.value.userType == UserType.GYM_OWNER && addUserState.value.amcPackage == null) {
+            errorMessage.value = "Please select the AMC Package"
+            return false
+        }
         if (addUserState.value.email.isEmpty()) {
             errorMessage.value = "Email should not be empty"
             return false
@@ -263,19 +269,11 @@ class AddUserViewModel(
         )
     }
 
-    suspend fun loadEquipments(user: User) {
-        equipmentRepository.getEquipments(user.firebaseId).collect {
-            if (it is ApiResult.Success) {
-                user.equipments = it.data.map { equipment -> equipment.id }
-            }
-        }
+    fun onAmcPackageChanged(amcPackage: AmcPackage) {
+        _addUserState.value = _addUserState.value.copy(amcPackage = amcPackage)
     }
 
-    suspend fun getEquipments(user: User) {
-        equipmentRepository.getEquipmentsByIds(user.equipments).collect {
-            if (it is ApiResult.Success) {
-                user.equipmentList = it.data
-            }
-        }
+    fun getCurrentUser(): User? {
+        return userRepository.currentUser.value
     }
 }

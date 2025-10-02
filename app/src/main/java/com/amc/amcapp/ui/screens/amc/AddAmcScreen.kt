@@ -254,7 +254,6 @@ fun TechnicianRecordsHeader() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AmcDatePicker(selectedDate: Long?, onDateSelected: (Long) -> Unit) {
-    val context = LocalContext.current
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
     Card(
@@ -342,23 +341,7 @@ fun AmcTimePicker(selectedTime: String, onTimeSelected: (String) -> Unit) {
 }
 
 @Composable
-fun SectionCard(title: String, onClick: (() -> Unit)? = null, content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-fun RecordPagerContainer(
+fun  RecordPagerContainer(
     recordsState: List<RecordUiItem>, amcViewModel: AddAmcViewModel, enabled: Boolean
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { recordsState.size })
@@ -368,7 +351,7 @@ fun RecordPagerContainer(
             state = pagerState,
             key = { index -> recordsState[index].recordItem.equipmentId }) { pageIndex ->
             val recordUiItem = recordsState[pageIndex]
-            RecordUiItem(enabled, pageIndex, recordUiItem) { index, recordItem ->
+            RecordUiListItem(enabled, pageIndex, recordUiItem, amcViewModel) { index, recordItem ->
                 amcViewModel.onRecordUpdated(index, recordItem)
             }
         }

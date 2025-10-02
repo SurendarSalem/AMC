@@ -13,6 +13,10 @@ interface IUserRepository {
     suspend fun updateUser(user: User): Flow<Boolean>
     suspend fun refreshCurrentUserDetails(userId: String): User?
     suspend fun getAllUsers(): List<User>
+    fun resetUser() {
+        currentUser.value = null
+    }
+
     val userName: Flow<String>
     var currentUser: MutableStateFlow<User?>
 }

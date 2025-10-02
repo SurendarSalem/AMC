@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.amc.amcapp.data.IAmcPackageRepository
 import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.data.datastore.PreferenceHelper
 import com.amc.amcapp.equipments.IEquipmentsRepository
@@ -33,6 +34,8 @@ class MainActivity : ComponentActivity() {
 
     private val equipmentsRepository: IEquipmentsRepository by inject()
 
+    private val amcPackageRepository: IAmcPackageRepository by inject()
+
 
     private var keepSplash = true
 
@@ -46,6 +49,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             complaintRepository.getAllComplaints()
             equipmentsRepository.getEquipments()
+            amcPackageRepository.getAllAmcPackages()
         }
         splashScreen.setKeepOnScreenCondition { keepSplash }
         enableEdgeToEdge()

@@ -10,6 +10,8 @@ sealed class NotifyState {
     data class ShowToast(val message: String, val actions: Actions? = null) : NotifyState()
     data class Navigate(val route: String, val data: Any? = null) : NotifyState()
     object LaunchActivity : NotifyState()
+
+    object GoBack : NotifyState()
 }
 
 enum class Actions {

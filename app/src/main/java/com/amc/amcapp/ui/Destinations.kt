@@ -26,8 +26,15 @@ enum class DrawerDest(
 
     Settings("settings", "Settings", Icons.Default.Settings),
 
-    Sales("sales", "Sales", Icons.Default.ShoppingBasket)
+    Sales("sales", "Sales", Icons.Default.ShoppingBasket),
 
+    AmcPackages("amc_packages", "AMC Packages", Icons.AutoMirrored.Default.List),
+}
+
+enum class AmcDest(
+    val route: String, val label: String, val icon: ImageVector, val badge: String? = null
+) {
+    AddAmcPackages("add_amc_packages", "Add AMC Package", Icons.AutoMirrored.Default.List)
 }
 
 enum class UserDest(

@@ -18,6 +18,7 @@ class LandingViewModel(
 
     suspend fun logout() {
         authRepository.signOut()
+        userRepository.resetUser()
         preferenceHelper.clearAll()
     }
 

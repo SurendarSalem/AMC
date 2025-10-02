@@ -20,7 +20,9 @@ import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.screens.ListItemScreen
 import com.amc.amcapp.ui.screens.ServiceScreen
+import com.amc.amcapp.ui.screens.amc.AddAmcPackageScreen
 import com.amc.amcapp.ui.screens.amc.AddAmcScreen
+import com.amc.amcapp.ui.screens.amc.AmcPackageScreen
 import com.amc.amcapp.ui.screens.customer.AddUserScreen
 import com.amc.amcapp.ui.screens.customer.CustomerListScreen
 import com.amc.amcapp.ui.screens.gym.EquipmentsListScreen
@@ -81,6 +83,14 @@ fun LandingNavHost(
             CustomerListScreen(navController)
         }
 
+
+        composable(DrawerDest.AmcPackages.route) {
+            AmcPackageScreen(navController)
+        }
+
+        composable(AmcDest.AddAmcPackages.route) {
+            AddAmcPackageScreen(navController)
+        }
         // Equipments List
 
         // Add/Edit Equipment

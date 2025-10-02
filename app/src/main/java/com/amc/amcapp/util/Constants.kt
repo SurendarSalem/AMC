@@ -8,4 +8,8 @@ object Constants {
     const val SELECTED_EQUIPMENTS = "selectedEquipments"
     const val SELECTED_TECHNICIAN = "selectedTechnician"
     const val REFRESH_EQUIPMENTS = "refreshEquipments"
+
+    object Table {
+        const val TABLE_AMC_PACKAGES = "amc_packages"
+    }
 }

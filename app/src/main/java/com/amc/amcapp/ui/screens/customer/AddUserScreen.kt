@@ -51,6 +51,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import com.amc.amcapp.model.AmcPackage
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
@@ -92,6 +93,7 @@ fun AddUserScreen(
     val isEditEnabled = remember { mutableStateOf(user == null) }
     val context = LocalContext.current
     val errorMessage by addUserViewModel.errorMessage.collectAsState()
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ?: return
 
     // Setup menu toggle
     fun updateMenu() {
@@ -99,6 +101,8 @@ fun AddUserScreen(
             true, if (isEditEnabled.value) Icons.Default.Cancel else Icons.Default.Edit
         ) { isEditEnabled.value = !isEditEnabled.value }
     }
+
+
 
     LaunchedEffect(user?.firebaseId) {
         if (user != null) {
@@ -132,8 +136,21 @@ fun AddUserScreen(
                         delay(300)
                         navController.popBackStack()
                     }
+
+                    NotifyState.GoBack -> {
+
+                    }
                 }
             }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            savedStateHandle.getLiveData<AmcPackage>("selectedAmcPackage")
+                .observe(navController.currentBackStackEntry!!) { amcPackage ->
+                    addUserViewModel.onAmcPackageChanged(amcPackage)
+                }
         }
     }
     Box(
@@ -252,8 +269,16 @@ fun AddUserScreen(
                     enabled = isEditEnabled.value
                 )
                 Spacer(Modifier.height(12.dp))
-                RoleSelectionSection(userState, addUserViewModel, isEditEnabled.value)
+                RoleSelectionSection(
+                    addUserViewModel.getCurrentUser(),
+                    userState,
+                    addUserViewModel,
+                    isEditEnabled.value,
+                    savedStateHandle,
+                    navController
+                )
             }
+
 
             Spacer(Modifier.height(16.dp))
 

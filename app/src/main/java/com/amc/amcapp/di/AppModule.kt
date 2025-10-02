@@ -3,7 +3,9 @@ package com.amc.amcapp.di
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.ComplaintRepository
 import com.amc.amcapp.IComplaintRepository
+import com.amc.amcapp.data.AmcPackageRepository
 import com.amc.amcapp.data.AmcRepository
+import com.amc.amcapp.data.IAmcPackageRepository
 import com.amc.amcapp.data.IAmcRepository
 import com.amc.amcapp.data.ISearchRepository
 import com.amc.amcapp.data.IUserRepository
@@ -24,7 +26,9 @@ import com.amc.amcapp.ui.screens.service.IServiceRepository
 import com.amc.amcapp.ui.screens.service.ServiceRepository
 import com.amc.amcapp.util.FirebaseHelper
 import com.amc.amcapp.viewmodel.AMCListViewModel
+import com.amc.amcapp.viewmodel.AddAmcPackageViewModel
 import com.amc.amcapp.viewmodel.AddUserViewModel
+import com.amc.amcapp.viewmodel.AmcPackageListViewModel
 import com.amc.amcapp.viewmodel.LoginViewModel
 import com.amc.amcapp.viewmodel.ForgotPasswordViewModel
 import com.amc.amcapp.viewmodel.LandingViewModel
@@ -62,6 +66,7 @@ val appModule = module {
     }
     single { FirebaseHelper() }
     single<IAmcRepository> { AmcRepository(get(), get()) }
+    single<IAmcPackageRepository> { AmcPackageRepository(get()) }
     single { PreferenceHelper(androidContext()) }
     single<IUserRepository> { UserRepository(androidContext(), get()) }
     single<IServiceRepository> { ServiceRepository() }
@@ -76,12 +81,13 @@ val appModule = module {
     }
     viewModel { AddGymViewModel(get()) }
     viewModel { AddEquipmentViewModel(get(), get()) }
-    viewModel { AMCListViewModel(get()) }
+    viewModel { AMCListViewModel(get(), get()) }
     viewModel { ForgotPasswordViewModel(get()) }
     viewModel { UserListViewModel(get(), get()) }
     viewModel { AddUserViewModel(get(), get(), get()) }
-    viewModel { AddAmcViewModel(get(),  get()) }
-
+    viewModel { AddAmcViewModel(get(), get()) }
+    viewModel { AmcPackageListViewModel(get()) }
+    viewModel { AddAmcPackageViewModel(get()) }
     factory { (clazz: Class<*>) ->
         @Suppress("UNCHECKED_CAST")
         SearchRepository(

@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Parcelable
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.equipments.spares.Spare
+import com.google.firebase.firestore.Exclude
 import kotlinx.parcelize.Parcelize
 import kotlin.String
 
@@ -22,7 +23,8 @@ data class AMC(
     val assignedName: String = "",
     val gymImage: String = "",
     val assigneeImage: String = "",
-    val equipments: List<Equipment> = emptyList(),
+    val equipmentIds: List<String> = emptyList(),
+    @get:Exclude var equipments: List<Equipment> = emptyList(),
     var recordItems: List<RecordItem> = emptyList()
 ) : Parcelable
 
@@ -40,12 +42,16 @@ data class RecordItem(
     var afterImageUrl: String = "",
     var beforeImageUri: String = "",
     var afterImageUri: String = "",
-    var addedSpares: List<SpareDetails> = emptyList()
+    var addedSpares: List<SpareDetails> = emptyList(),
 ) : Parcelable
 
 @Parcelize
 data class RecordUiItem(
-    val recordItem: RecordItem, var beforeImage: RecordImage, var afterImage: RecordImage
+    val recordItem: RecordItem,
+    var beforeImage: RecordImage,
+    var afterImage: RecordImage,
+    var addedSpares: List<SpareDetails> = emptyList(),
+    var totalSpares: List<Spare> = emptyList(),
 ) : Parcelable
 
 @Parcelize
@@ -62,10 +68,11 @@ fun RecordUiItem.toRecordItem() = RecordItem(
     beforeImageUrl = beforeImage.imageUrl,
     afterImageUrl = afterImage.imageUrl,
     beforeImageUri = beforeImage.imageUri,
-    afterImageUri = afterImage.imageUri
+    afterImageUri = afterImage.imageUri,
+    addedSpares = addedSpares
 )
 
 @Parcelize
 data class SpareDetails(
-    val spareId: String, val spareName: String, val quantity: Int
-) : Parcelable
+    val spareId: String = "", val spareName: String = "", val quantity: Int = 0
+) : Parcelable {}

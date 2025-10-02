@@ -1,6 +1,5 @@
 package com.amc.amcapp.ui
 
-import android.widget.CheckBox
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
@@ -27,11 +26,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Password
@@ -42,6 +42,8 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -75,14 +77,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.amc.amcapp.Complaint
-import com.amc.amcapp.Equipment
-import com.amc.amcapp.EquipmentType
-import com.amc.amcapp.equipments.AddEquipmentState
-import com.amc.amcapp.equipments.AddEquipmentViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.navigation.NavController
 import com.amc.amcapp.equipments.ComplaintUiState
 import com.amc.amcapp.model.Status
+import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
+import com.amc.amcapp.ui.screens.ListTypeKey
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.ui.theme.Orange
 import com.amc.amcapp.util.BubbleProgressBar
@@ -99,7 +100,8 @@ fun AppTextField(
     label: String,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     minLines: Int = 1,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     OutlinedTextField(
         value = value,
@@ -107,6 +109,7 @@ fun AppTextField(
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
         visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
         minLines = minLines,
         enabled = enabled
     )
@@ -169,12 +172,20 @@ fun AppError(errorMessage: String) {
             .fillMaxSize()
             .padding(16.dp), contentAlignment = Alignment.Center
     ) {
-        Text(
-            modifier = Modifier.align(Alignment.Center),
-            text = errorMessage,
-            color = MaterialTheme.colorScheme.error,
-            fontSize = 16.sp
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.ErrorOutline,
+                contentDescription = "Error",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 16.sp
+            )
+        }
     }
 }
 
@@ -327,7 +338,12 @@ fun AnimatedSectionCard(
 
 @Composable
 fun RoleSelectionSection(
-    userState: AddUserState, viewModel: AddUserViewModel, isEditEnabled: Boolean
+    currentUser: User?,
+    userState: AddUserState,
+    viewModel: AddUserViewModel,
+    isEditEnabled: Boolean,
+    savedStateHandle: SavedStateHandle,
+    navController: NavController
 ) {
     Column(
         modifier = Modifier
@@ -341,34 +357,84 @@ fun RoleSelectionSection(
                 fontSize = 18.sp, fontWeight = FontWeight.Bold
             )
         )
+        Column {
+            UserType.entries.filter { it != UserType.ADMIN }.forEach { role ->
 
-        UserType.entries.filter { it != UserType.ADMIN }.forEach { role ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = isEditEnabled) { viewModel.onRoleChanged(role) },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = (userState.userType == role),
-                    onClick = { viewModel.onRoleChanged(role) },
-                    enabled = isEditEnabled
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = role.label, fontSize = LocalDimens.current.textLarge.sp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                if (role == UserType.GYM_OWNER && userState.userType == UserType.GYM_OWNER) {
-                    Checkbox(
-                        checked = userState.isAmcEnabled, onCheckedChange = viewModel::onAmcEnabled
-                    )
-                    Text(
-                        text = "Is AMC Enabled?", fontSize = LocalDimens.current.textMedium.sp
-                    )
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(enabled = isEditEnabled) { viewModel.onRoleChanged(role) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (userState.userType == role),
+                            onClick = { viewModel.onRoleChanged(role) },
+                            enabled = isEditEnabled
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = role.label, fontSize = LocalDimens.current.textLarge.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        if (role == UserType.GYM_OWNER && userState.userType == UserType.GYM_OWNER) {
+                            Checkbox(
+                                checked = userState.isAmcEnabled,
+                                onCheckedChange = viewModel::onAmcEnabled
+                            )
+                            Text(
+                                text = "Is AMC Enabled?",
+                                fontSize = LocalDimens.current.textMedium.sp
+                            )
+                        }
+                    }
+                    if (userState.isAmcEnabled && role == UserType.GYM_OWNER) {
+                        SectionCard(title = "Select AMC Package", onClick = {
+                            if (currentUser?.userType == UserType.ADMIN) {
+                                savedStateHandle["listTypeKey"] = ListTypeKey.AMC_PACKAGE
+                                navController.navigate(ListDest.ListScreen.route)
+                            }
+                        }) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                userState.amcPackage?.let {
+                                    Text(
+                                        text = it.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+
+                            }
+                        }
+
+                    }
                 }
-
             }
+        }
+    }
+}
+
+@Composable
+fun SectionCard(title: String, onClick: (() -> Unit)? = null, content: @Composable () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                content()
+            }
+            Icon(
+                imageVector = Icons.Default.ArrowForwardIos,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(LocalDimens.current.spacingMedium.dp),
+                contentDescription = "Navigate to Amc Package selection"
+            )
         }
     }
 }
@@ -442,16 +508,16 @@ private fun StatusTag(status: Status) {
 
     AssistChip(
         shape = RoundedCornerShape(16.dp), onClick = {}, label = {
-        Text(
-            text = label,
-            fontSize = LocalDimens.current.tagTextSize.sp,
-            color = content,
-            maxLines = 1,
-            modifier = Modifier.padding(LocalDimens.current.tagPadding.dp)
-        )
-    }, colors = AssistChipDefaults.assistChipColors(
-        containerColor = container, labelColor = content
-    ), modifier = Modifier
+            Text(
+                text = label,
+                fontSize = LocalDimens.current.tagTextSize.sp,
+                color = content,
+                maxLines = 1,
+                modifier = Modifier.padding(LocalDimens.current.tagPadding.dp)
+            )
+        }, colors = AssistChipDefaults.assistChipColors(
+            containerColor = container, labelColor = content
+        ), modifier = Modifier
             .padding(LocalDimens.current.tagPadding.dp)
             .height(24.dp)
     )

@@ -31,7 +31,7 @@ fun StatusTracker(
     steps: List<String>,
     currentStep: Int
 ) {
-    val circleSize = 28.dp
+    val circleSize = 20.dp
     val lineHeight = 4.dp
     val labelHeight = 24.dp
     val completedColor = Color(0xFF4CAF50)

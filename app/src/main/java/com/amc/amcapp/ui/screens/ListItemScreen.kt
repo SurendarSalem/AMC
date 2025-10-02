@@ -13,9 +13,11 @@ import com.amc.amcapp.Equipment
 import com.amc.amcapp.equipments.spares.Spare
 import com.amc.amcapp.equipments.spares.toUiItem
 import com.amc.amcapp.model.AMC
+import com.amc.amcapp.model.AmcPackage
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.toUiItem
+import com.amc.amcapp.ui.AmcPackageItem
 import com.amc.amcapp.ui.SearchListScreen
 import com.amc.amcapp.ui.screens.amc.UserItem
 import com.amc.amcapp.ui.screens.gym.ComplaintItem
@@ -43,6 +45,7 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
 
         ListTypeKey.AMCS -> Triple("amc", AMC::class.java, Pair("", ""))
         ListTypeKey.EQUIPMENTS -> Triple("equipments", Equipment::class.java, Pair("", ""))
+        ListTypeKey.AMC_PACKAGE -> Triple("amc_packages", AmcPackage::class.java, Pair("", ""))
     }
     val vm: SearchViewModel<Any> = koinViewModel { parametersOf(clazz) }
 
@@ -123,7 +126,8 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
 
                 ListTypeKey.EQUIPMENTS -> {
                     onTitleUpdated("Select Equipments")
-                    var selectedEquipments = handle?.get<List<Equipment>>(Constants.SELECTED_EQUIPMENTS) ?: emptyList()
+                    var selectedEquipments =
+                        handle?.get<List<Equipment>>(Constants.SELECTED_EQUIPMENTS) ?: emptyList()
 
                     var equipmentUiItem by remember {
                         mutableStateOf((item as Equipment).toUiItem().apply {
@@ -151,6 +155,14 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
                         onEquipmentClicked = { spare ->
 
                         })
+                }
+
+                ListTypeKey.AMC_PACKAGE -> {
+                    onTitleUpdated("Select AMC Package")
+                    AmcPackageItem(item as AmcPackage) { amcPackage ->
+                        handle?.set("selectedAmcPackage", amcPackage)
+                        navController.popBackStack()
+                    }
                 }
 
                 ListTypeKey.AMCS -> TODO()

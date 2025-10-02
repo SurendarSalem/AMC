@@ -27,7 +27,8 @@ class AmcRepository(
     override suspend fun getAllAMCs(): List<AMC> {
         return try {
             val snapshot = firestore.collection("amcs").get().await()
-            snapshot.toObjects(AMC::class.java)
+            val list = snapshot.toObjects(AMC::class.java)
+            list
         } catch (e: Exception) {
             emptyList()
         }

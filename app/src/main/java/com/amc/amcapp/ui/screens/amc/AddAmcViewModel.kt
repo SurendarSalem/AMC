@@ -74,13 +74,16 @@ class AddAmcViewModel(
 
     suspend fun addAmcToFirebase(equipmentList: List<Equipment>?) {
         _addAmcState.value = ApiResult.Loading
-        equipmentList?.let {
+        equipmentList?.let { it ->
             _amcState.value = amcState.value.copy(
                 recordItems = it.map {
                     RecordItem(
-                        equipmentId = it.id, equipmentName = it.name, addedSpares = emptyList()
+                        equipmentId = it.id, equipmentName = it.name
                     )
-                })
+                }, equipmentIds = it.map {
+                    it.id
+                }
+            )
         }
 
         amcRepository.addAmc(amcState.value).collect { result ->
@@ -106,19 +109,19 @@ class AddAmcViewModel(
 
     fun preFillDetails(amc: AMC) {
         _amcState.value = amc
-        recordUiItems.value = amc.recordItems.map {
+        recordUiItems.value = amc.recordItems.mapIndexed { index, recordItem ->
             RecordUiItem(
-                recordItem = it, beforeImage = RecordImage(
-                    imageUrl = it.beforeImageUrl,
-                    imageUri = it.beforeImageUri,
-                    shouldUseUrl = it.beforeImageUrl.isNotEmpty(),
-                    shouldUseUri = it.beforeImageUri.isNotEmpty()
+                recordItem = recordItem, beforeImage = RecordImage(
+                    imageUrl = recordItem.beforeImageUrl,
+                    imageUri = recordItem.beforeImageUri,
+                    shouldUseUrl = recordItem.beforeImageUrl.isNotEmpty(),
+                    shouldUseUri = recordItem.beforeImageUri.isNotEmpty(),
                 ), afterImage = RecordImage(
-                    imageUrl = it.afterImageUrl,
-                    imageUri = it.afterImageUri,
-                    shouldUseUrl = it.afterImageUrl.isNotEmpty(),
-                    shouldUseUri = it.afterImageUri.isNotEmpty()
-                )
+                    imageUrl = recordItem.afterImageUrl,
+                    imageUri = recordItem.afterImageUri,
+                    shouldUseUrl = recordItem.afterImageUrl.isNotEmpty(),
+                    shouldUseUri = recordItem.afterImageUri.isNotEmpty()
+                ), addedSpares = recordItem.addedSpares, totalSpares = amc.equipments[index].spares
             )
         }
     }
@@ -205,6 +208,10 @@ class AddAmcViewModel(
                 else -> Unit
             }
         }
+
+    }
+
+    fun getSpares(equipmentId: String) {
 
     }
 }
