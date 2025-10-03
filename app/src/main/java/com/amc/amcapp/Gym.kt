@@ -1,7 +1,7 @@
 package com.amc.amcapp
 
 import android.os.Parcelable
-import com.amc.amcapp.equipments.spares.Spare
+import com.amc.amcapp.model.Spare
 import com.google.firebase.firestore.Exclude
 import kotlinx.parcelize.Parcelize
 import java.sql.Date

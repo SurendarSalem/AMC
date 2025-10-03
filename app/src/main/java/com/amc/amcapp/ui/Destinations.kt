@@ -29,12 +29,20 @@ enum class DrawerDest(
     Sales("sales", "Sales", Icons.Default.ShoppingBasket),
 
     AmcPackages("amc_packages", "AMC Packages", Icons.AutoMirrored.Default.List),
+
+    Spares("spares", "Spares", Icons.AutoMirrored.Default.List)
 }
 
 enum class AmcDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
     AddAmcPackages("add_amc_packages", "Add AMC Package", Icons.AutoMirrored.Default.List)
+}
+
+enum class SpareDest(
+    val route: String, val label: String, val icon: ImageVector, val badge: String? = null
+) {
+    AddSpare("add_spare", "Add Spare", Icons.AutoMirrored.Default.List)
 }
 
 enum class UserDest(

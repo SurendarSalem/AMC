@@ -41,8 +41,8 @@ import com.amc.amcapp.Equipment
 import com.amc.amcapp.EquipmentType
 import com.amc.amcapp.equipments.AddEquipmentState
 import com.amc.amcapp.equipments.AddEquipmentViewModel
-import com.amc.amcapp.equipments.spares.Spare
 import com.amc.amcapp.model.NotifyState
+import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.*
 import com.amc.amcapp.ui.screens.ListTypeKey

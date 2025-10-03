@@ -10,10 +10,10 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import com.amc.amcapp.Complaint
 import com.amc.amcapp.Equipment
-import com.amc.amcapp.equipments.spares.Spare
 import com.amc.amcapp.equipments.spares.toUiItem
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.AmcPackage
+import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
 import com.amc.amcapp.toUiItem
@@ -45,7 +45,7 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
 
         ListTypeKey.AMCS -> Triple("amc", AMC::class.java, Pair("", ""))
         ListTypeKey.EQUIPMENTS -> Triple("equipments", Equipment::class.java, Pair("", ""))
-        ListTypeKey.AMC_PACKAGE -> Triple("amc_packages", AmcPackage::class.java, Pair("", ""))
+        ListTypeKey.AMC_PACKAGE -> Triple("amc_packages", Spare::class.java, Pair("", ""))
     }
     val vm: SearchViewModel<Any> = koinViewModel { parametersOf(clazz) }
 

@@ -11,5 +11,6 @@ object Constants {
 
     object Table {
         const val TABLE_AMC_PACKAGES = "amc_packages"
+        const val TABLE_SPARES = "spares"
     }
 }

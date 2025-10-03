@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amc.amcapp.model.AmcPackage
-import com.amc.amcapp.model.User
+import com.amc.amcapp.model.Spare
 import com.amc.amcapp.ui.theme.LocalDimens
 
 @Composable

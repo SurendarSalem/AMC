@@ -1,7 +1,7 @@
 package com.amc.amcapp.data
 
-import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.AmcPackage
+import com.amc.amcapp.model.Spare
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.util.Constants.Table.TABLE_AMC_PACKAGES
 import com.google.firebase.firestore.FirebaseFirestore

@@ -6,9 +6,9 @@ import com.amc.amcapp.Complaint
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.EquipmentType
 import com.amc.amcapp.IComplaintRepository
-import com.amc.amcapp.equipments.spares.Spare
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.NotifyState
+import com.amc.amcapp.model.Spare
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.util.ImageUtils
 import com.google.firebase.Firebase

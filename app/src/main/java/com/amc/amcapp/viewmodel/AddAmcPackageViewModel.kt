@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amc.amcapp.data.IAmcPackageRepository
 import com.amc.amcapp.model.AmcPackage
+import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.ApiResult
 import kotlinx.coroutines.delay
@@ -19,7 +20,7 @@ class AddAmcPackageViewModel(val amcPackageRepository: IAmcPackageRepository) : 
 
     val notify = MutableSharedFlow<NotifyState>()
 
-    fun addAmcPackage(amcPackage: AmcPackage) {
+    fun addOrUpdateAmcPackage(amcPackage: AmcPackage) {
         viewModelScope.launch {
             amcPackageRepository.addOrUpdateAmc(amcPackage).collect { result ->
                 _amcPackagesList.value = result

@@ -19,7 +19,7 @@ open class User(
     open var isAmcEnabled: Boolean = false,
     open var equipments: List<String> = emptyList(),
     @Exclude open var equipmentList: List<Equipment> = emptyList(),
-    open var amcPackage: AmcPackage? = null
+    open var amcPackage: Spare? = null
 ) : Parcelable
 
 

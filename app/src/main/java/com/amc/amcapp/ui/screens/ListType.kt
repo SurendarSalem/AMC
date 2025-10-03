@@ -2,7 +2,7 @@ package com.amc.amcapp.ui.screens
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.amc.amcapp.equipments.spares.Spare
+import com.amc.amcapp.model.Spare
 
 sealed class ListType(
     val table: String,

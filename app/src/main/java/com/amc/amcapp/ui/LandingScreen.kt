@@ -204,6 +204,7 @@ private fun titleForDestination(dest: NavDestination?, listItemScreenTitle: Stri
     GymDest.entries.firstOrNull { it.route == route }?.let { return it.label }
     ListDest.entries.firstOrNull { it.route == route }?.let { return listItemScreenTitle }
     AmcDest.entries.firstOrNull { it.route == route }?.let { return it.label }
+    SpareDest.entries.firstOrNull { it.route == route }?.let { return it.label }
 
     return when {
         route.startsWith("detail/") -> "Detail"

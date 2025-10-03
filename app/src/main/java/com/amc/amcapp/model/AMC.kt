@@ -3,7 +3,6 @@ package com.amc.amcapp.model
 import android.net.Uri
 import android.os.Parcelable
 import com.amc.amcapp.Equipment
-import com.amc.amcapp.equipments.spares.Spare
 import com.google.firebase.firestore.Exclude
 import kotlinx.parcelize.Parcelize
 import kotlin.String

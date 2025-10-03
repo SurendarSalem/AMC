@@ -17,6 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.model.AMC
+import com.amc.amcapp.model.AmcPackage
+import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.User
 import com.amc.amcapp.ui.screens.ListItemScreen
 import com.amc.amcapp.ui.screens.ServiceScreen
@@ -28,6 +30,8 @@ import com.amc.amcapp.ui.screens.customer.CustomerListScreen
 import com.amc.amcapp.ui.screens.gym.EquipmentsListScreen
 import com.amc.amcapp.ui.screens.gym.equipment.AddEquipmentScreen
 import com.amc.amcapp.ui.screens.service.AddServiceScreen
+import com.amc.amcapp.ui.screens.spare.AddSpareScreen
+import com.amc.amcapp.ui.screens.spare.SparesListScreen
 import com.amc.amcapp.util.Constants
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -89,7 +93,9 @@ fun LandingNavHost(
         }
 
         composable(AmcDest.AddAmcPackages.route) {
-            AddAmcPackageScreen(navController)
+            val amcPackage =
+                navController.previousBackStackEntry?.savedStateHandle?.get<AmcPackage>("amcPackage")
+            AddAmcPackageScreen(amcPackage = amcPackage, navController = navController)
         }
         // Equipments List
 
@@ -167,6 +173,17 @@ fun LandingNavHost(
         // Generic List Screen
         composable(ListDest.ListScreen.route) {
             ListItemScreen(navController) { onListItemScreenTitleChange(it) }
+        }
+
+        composable(DrawerDest.Spares.route) {
+            SparesListScreen(navController)
+        }
+
+        composable(SpareDest.AddSpare.route) {
+            val spare = navController.previousBackStackEntry?.savedStateHandle?.let {
+                it["spare"] as Spare?
+            }
+            AddSpareScreen(spare = spare, navController = navController)
         }
     }
 }

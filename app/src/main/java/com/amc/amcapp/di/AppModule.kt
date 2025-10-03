@@ -8,8 +8,10 @@ import com.amc.amcapp.data.AmcRepository
 import com.amc.amcapp.data.IAmcPackageRepository
 import com.amc.amcapp.data.IAmcRepository
 import com.amc.amcapp.data.ISearchRepository
+import com.amc.amcapp.data.ISparesRepository
 import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.data.SearchRepository
+import com.amc.amcapp.data.SparesRepository
 import com.amc.amcapp.data.UserRepository
 import com.amc.amcapp.data.datastore.PreferenceHelper
 import com.amc.amcapp.equipments.AddEquipmentViewModel
@@ -27,6 +29,7 @@ import com.amc.amcapp.ui.screens.service.ServiceRepository
 import com.amc.amcapp.util.FirebaseHelper
 import com.amc.amcapp.viewmodel.AMCListViewModel
 import com.amc.amcapp.viewmodel.AddAmcPackageViewModel
+import com.amc.amcapp.viewmodel.AddSpareViewModel
 import com.amc.amcapp.viewmodel.AddUserViewModel
 import com.amc.amcapp.viewmodel.AmcPackageListViewModel
 import com.amc.amcapp.viewmodel.LoginViewModel
@@ -34,6 +37,7 @@ import com.amc.amcapp.viewmodel.ForgotPasswordViewModel
 import com.amc.amcapp.viewmodel.LandingViewModel
 import com.amc.amcapp.viewmodel.SearchViewModel
 import com.amc.amcapp.viewmodel.SignUpViewModel
+import com.amc.amcapp.viewmodel.SparesListViewModel
 import com.amc.amcapp.viewmodel.SplashViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -86,8 +90,16 @@ val appModule = module {
     viewModel { UserListViewModel(get(), get()) }
     viewModel { AddUserViewModel(get(), get(), get()) }
     viewModel { AddAmcViewModel(get(), get()) }
+
+    /*AMC Package*/
     viewModel { AmcPackageListViewModel(get()) }
     viewModel { AddAmcPackageViewModel(get()) }
+
+    /*Spares*/
+    single<ISparesRepository> { SparesRepository(get()) }
+    viewModel { SparesListViewModel(get()) }
+    viewModel { AddSpareViewModel(get(), get()) }
+
     factory { (clazz: Class<*>) ->
         @Suppress("UNCHECKED_CAST")
         SearchRepository(
