@@ -30,6 +30,7 @@ import com.amc.amcapp.ui.BottomDest
 import com.amc.amcapp.ui.ListDest
 import com.amc.amcapp.ui.UserDest
 import com.amc.amcapp.ui.screens.amc.AMCListScreen
+import com.amc.amcapp.ui.screens.amc.AMCReportScreen
 import com.amc.amcapp.ui.screens.amc.AddAmcScreen
 import com.amc.amcapp.ui.theme.LocalDimens
 
@@ -72,6 +73,14 @@ fun ServiceScreen(onTitleUpdated: (String) -> Unit) {
                 composable(ListDest.ListScreen.route) { backStackEntry ->
                     ListItemScreen(navController) {
                         onTitleUpdated(it)
+                    }
+                }
+                composable(UserDest.AmcReport.route) {
+                    val amc = navController.previousBackStackEntry?.savedStateHandle?.let {
+                        it["amc"] as AMC?
+                    }
+                    amc?.let {
+                        AMCReportScreen(amc = it)
                     }
                 }
             }

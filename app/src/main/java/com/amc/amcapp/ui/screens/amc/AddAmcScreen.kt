@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.EditCalendar
 import androidx.compose.material.icons.filled.GppGood
@@ -70,6 +69,10 @@ fun AddAmcScreen(
         } ?: run {
             gymOwner?.let {
                 addAmcViewModel.onGymNameChanged(it.name)
+                it.amcPackage?.let { amcPackage ->
+                    addAmcViewModel.onAmcPackageDetailsChanged(amcPackage)
+                }
+
             }
         }
         savedStateHandle.getLiveData<User>("selectedTechnician")
@@ -109,6 +112,18 @@ fun AddAmcScreen(
 
             Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
 
+            amcState.amcPackageDetails?.let { amcPackage ->
+                SectionCard(title = "Amc Package") {
+                    Text(
+                        amcPackage.amcPackageName,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+
+            Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+
             // Technician Selection
             SectionCard(title = "Select Technician", onClick = {
                 if (currentUser?.userType == UserType.ADMIN) {
@@ -122,10 +137,6 @@ fun AddAmcScreen(
                         text = amcState.assignedName.ifEmpty { "Technician" },
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.ArrowForwardIos,
-                        contentDescription = "Navigate to technician selection"
                     )
                 }
             }
@@ -219,6 +230,15 @@ fun AddAmcScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         textColor = Color.White
                     )
+                }
+            }
+
+            if (amc?.status == Status.APPROVED) {
+                Button(onClick = {
+                    savedStateHandle["amc"] = amc
+                    navController.navigate(UserDest.AmcReport.route)
+                }) {
+                    Text("Generate Report")
                 }
             }
 
@@ -341,7 +361,7 @@ fun AmcTimePicker(selectedTime: String, onTimeSelected: (String) -> Unit) {
 }
 
 @Composable
-fun  RecordPagerContainer(
+fun RecordPagerContainer(
     recordsState: List<RecordUiItem>, amcViewModel: AddAmcViewModel, enabled: Boolean
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { recordsState.size })

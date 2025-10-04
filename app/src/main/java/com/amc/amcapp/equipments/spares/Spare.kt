@@ -8,7 +8,8 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class SpareUiItem(
     val spare: Spare,
-    var isSelected: Boolean = false
+    var isSelected: Boolean = false,
+    var requiredQuantity: Int = 0
 ) : Parcelable
 
 fun Spare.toUiItem() = SpareUiItem(

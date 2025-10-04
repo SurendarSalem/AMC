@@ -10,18 +10,22 @@ import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.amc.amcapp.Equipment
+import com.amc.amcapp.equipments.AddEquipmentViewModel
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.AmcPackage
 import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.User
+import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.screens.ListItemScreen
 import com.amc.amcapp.ui.screens.ServiceScreen
+import com.amc.amcapp.ui.screens.amc.AMCReportScreen
 import com.amc.amcapp.ui.screens.amc.AddAmcPackageScreen
 import com.amc.amcapp.ui.screens.amc.AddAmcScreen
 import com.amc.amcapp.ui.screens.amc.AmcPackageScreen
@@ -33,6 +37,7 @@ import com.amc.amcapp.ui.screens.service.AddServiceScreen
 import com.amc.amcapp.ui.screens.spare.AddSpareScreen
 import com.amc.amcapp.ui.screens.spare.SparesListScreen
 import com.amc.amcapp.util.Constants
+import org.koin.androidx.compose.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -70,14 +75,22 @@ fun LandingNavHost(
 
         composable(DrawerDest.DrawerEquipments.route) {
 
-            EquipmentsListScreen(navController = navController, gymOwner = null)
+            EquipmentsListScreen(
+                navController = navController,
+                openedFor = UserType.ADMIN,
+                gymOwner = null
+            )
 
         }
 
         composable(UserDest.Equipments.route) {
             val user = navController.previousBackStackEntry?.savedStateHandle?.get<User>("user")
             user?.let {
-                EquipmentsListScreen(navController = navController, gymOwner = it)
+                EquipmentsListScreen(
+                    navController = navController,
+                    openedFor = UserType.GYM_OWNER,
+                    gymOwner = it
+                )
                 onMenuEnabledChange(false)
             }
         }
@@ -97,15 +110,31 @@ fun LandingNavHost(
                 navController.previousBackStackEntry?.savedStateHandle?.get<AmcPackage>("amcPackage")
             AddAmcPackageScreen(amcPackage = amcPackage, navController = navController)
         }
+
+        composable(UserDest.AmcReport.route) {
+            val amc = navController.previousBackStackEntry?.savedStateHandle?.let {
+                it["amc"] as AMC?
+            }
+            amc?.let {
+                AMCReportScreen(amc = it)
+            }
+        }
         // Equipments List
 
         // Add/Edit Equipment
-        composable(GymDest.AddEquipment.route) {
+        composable(GymDest.AddEquipment.route) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(GymDest.AddEquipment.route)
+            }
+            val addEquipmentViewModel: AddEquipmentViewModel =
+                koinViewModel(viewModelStoreOwner = parentEntry)
+
             val equipment =
                 navController.previousBackStackEntry?.savedStateHandle?.get<Equipment>("equipment")
 
             AddEquipmentScreen(
                 navController = navController,
+                addEquipmentViewModel = addEquipmentViewModel,
                 equipment = equipment,
                 onMenuUpdated = { enabled, icon, onClick ->
                     onMenuEnabledChange(enabled)

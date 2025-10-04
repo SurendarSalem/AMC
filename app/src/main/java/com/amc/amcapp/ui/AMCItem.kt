@@ -250,8 +250,18 @@ fun RecordUiListItem(
                                 )
                             }
                             onRecordUpdated(index, recordUiItemState)
+                        }, onSpareClicked = {}, onQuantityChange = { newQuantity ->
+                            spareUiItemState = spareUiItemState.copy(requiredQuantity = newQuantity)
+                            recordUiItemState = recordUiItemState.copy(
+                                addedSpares = recordUiItemState.addedSpares.map {
+                                    if (it.spareId == spare.id) {
+                                        it.copy(quantity = newQuantity)
+                                    } else it
+                                }
+                            )
+                            onRecordUpdated(index, recordUiItemState)
                         }
-                    ) { }
+                    )
                 }
             }
 

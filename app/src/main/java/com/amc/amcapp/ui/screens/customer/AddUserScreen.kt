@@ -51,6 +51,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import com.amc.amcapp.model.AmcPackage
 import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
@@ -147,7 +148,7 @@ fun AddUserScreen(
 
     LaunchedEffect(Unit) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            savedStateHandle.getLiveData<Spare>("selectedAmcPackage")
+            savedStateHandle.getLiveData<AmcPackage>("selectedAmcPackage")
                 .observe(navController.currentBackStackEntry!!) { amcPackage ->
                     addUserViewModel.onAmcPackageChanged(amcPackage)
                 }

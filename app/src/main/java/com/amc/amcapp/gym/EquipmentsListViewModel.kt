@@ -18,18 +18,17 @@ import kotlinx.coroutines.launch
 
 class EquipmentsListViewModel(
     private val gymOwner: User?,
+    private val openedFor: UserType?,
     private val equipmentsRepository: IEquipmentsRepository,
     private val userRepository: IUserRepository
 ) : ViewModel() {
 
     // Equipments list state
-    private val _equipmentsListState =
-        MutableStateFlow<ApiResult<List<Equipment>>>(ApiResult.Empty)
+    private val _equipmentsListState = MutableStateFlow<ApiResult<List<Equipment>>>(ApiResult.Empty)
     val equipmentsListState = _equipmentsListState.asStateFlow()
 
     // Update equipment state
-    private val _updateEquipmentState =
-        MutableStateFlow<ApiResult<Boolean>>(ApiResult.Empty)
+    private val _updateEquipmentState = MutableStateFlow<ApiResult<Boolean>>(ApiResult.Empty)
     val updateEquipmentState = _updateEquipmentState.asStateFlow()
 
     // Notifications (for toast/snackbar)
@@ -42,11 +41,11 @@ class EquipmentsListViewModel(
 
     fun loadEquipments() {
         viewModelScope.launch {
-            if (getCurrentUser()?.userType == UserType.ADMIN) {
+            if (openedFor == UserType.ADMIN) {
                 equipmentsRepository.getEquipments("").collect { result ->
                     _equipmentsListState.value = result
                 }
-            } else {
+            } else if (openedFor == UserType.GYM_OWNER) {
                 gymOwner?.let {
                     equipmentsRepository.getEquipmentsByIds(it.equipments).collect { result ->
                         _equipmentsListState.value = result
@@ -70,8 +69,7 @@ class EquipmentsListViewModel(
                     delay(300)
                     _notifyState.emit(NotifyState.ShowToast("Equipments updated successfully"))
                 } else {
-                    _updateEquipmentState.value =
-                        ApiResult.Error("Failed to update equipments")
+                    _updateEquipmentState.value = ApiResult.Error("Failed to update equipments")
                     delay(300)
                     _notifyState.emit(NotifyState.ShowToast("Failed to update equipments"))
                 }

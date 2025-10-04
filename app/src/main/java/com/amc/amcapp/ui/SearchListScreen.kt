@@ -26,7 +26,7 @@ fun <T> SearchListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         when (itemsState) {
             is ApiResult.Loading -> {

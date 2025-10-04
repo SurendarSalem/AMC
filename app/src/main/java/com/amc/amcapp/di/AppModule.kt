@@ -21,6 +21,7 @@ import com.amc.amcapp.gym.AddGymViewModel
 import com.amc.amcapp.gym.EquipmentsListViewModel
 import com.amc.amcapp.gym.GymRepository
 import com.amc.amcapp.model.User
+import com.amc.amcapp.model.UserType
 import com.amc.amcapp.ui.screens.amc.AddAmcViewModel
 import com.amc.amcapp.ui.screens.amc.UserListViewModel
 import com.amc.amcapp.ui.screens.service.AddServiceViewModel
@@ -80,8 +81,8 @@ val appModule = module {
     single<IComplaintRepository> { ComplaintRepository(get()) }
     single<IEquipmentsRepository> { EquipmentsRepository(get()) }
     single { GymRepository(get()) }
-    viewModel { (user: User?) ->
-        EquipmentsListViewModel(user, get(), get())
+    viewModel { (user: User?, openedFor: UserType) ->
+        EquipmentsListViewModel(user, openedFor,get(), get())
     }
     viewModel { AddGymViewModel(get()) }
     viewModel { AddEquipmentViewModel(get(), get()) }
@@ -101,19 +102,15 @@ val appModule = module {
     viewModel { AddSpareViewModel(get(), get()) }
 
     factory { (clazz: Class<*>) ->
-        @Suppress("UNCHECKED_CAST")
-        SearchRepository(
-            firestore = get(),
-            clazz = clazz
+        @Suppress("UNCHECKED_CAST") SearchRepository(
+            firestore = get(), clazz = clazz
         ) as ISearchRepository<Any>
     }
 
     // ViewModel factory for any type
     viewModel { (clazz: Class<*>) ->
-        @Suppress("UNCHECKED_CAST")
-        (SearchViewModel<Any>(
-            searchRepository = get { parametersOf(clazz) }
-        ))
+        @Suppress("UNCHECKED_CAST") (SearchViewModel<Any>(
+            searchRepository = get { parametersOf(clazz) }))
     }
 }
 

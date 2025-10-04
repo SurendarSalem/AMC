@@ -24,7 +24,8 @@ data class AMC(
     val assigneeImage: String = "",
     val equipmentIds: List<String> = emptyList(),
     @get:Exclude var equipments: List<Equipment> = emptyList(),
-    var recordItems: List<RecordItem> = emptyList()
+    var recordItems: List<RecordItem> = emptyList(),
+    var amcPackageDetails: AmcPackageDetails? = null
 ) : Parcelable
 
 enum class Status(val label: String) {
@@ -32,6 +33,13 @@ enum class Status(val label: String) {
         "Cancelled"
     )
 }
+
+@Parcelize
+data class AmcPackageDetails(
+    var id: String = "",
+    var amcPackageName: String = "",
+    var price: Double = 0.0,
+) : Parcelable
 
 @Parcelize
 data class RecordItem(

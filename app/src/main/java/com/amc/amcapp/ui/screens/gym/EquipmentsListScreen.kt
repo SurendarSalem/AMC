@@ -68,10 +68,10 @@ import org.koin.core.parameter.parametersOf
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EquipmentsListScreen(
-    navController: NavController, gymOwner: User?
+    navController: NavController, gymOwner: User?, openedFor: UserType
 ) {
     val equipmentsListViewModel: EquipmentsListViewModel = koinViewModel(
-        parameters = { parametersOf(gymOwner) })
+        parameters = { parametersOf(gymOwner, openedFor) })
     val equipmentsListState by equipmentsListViewModel.equipmentsListState.collectAsState()
     val updateEquipmentState by equipmentsListViewModel.updateEquipmentState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
@@ -164,7 +164,9 @@ fun EquipmentsListScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(LocalDimens.current.spacingLarge.dp), onClick = {
-                    if (currentUser?.userType == UserType.GYM_OWNER || gymOwner != null) {
+                    if (openedFor == UserType.ADMIN) {
+                        navController.navigate(GymDest.AddEquipment.route)
+                    } else if (openedFor == UserType.GYM_OWNER || gymOwner != null) {
                         savedStateHandle?.apply {
                             this[Constants.LIST_TYPE_KEY] = ListTypeKey.EQUIPMENTS
                             if (equipmentsListState is ApiResult.Success) {
@@ -173,15 +175,13 @@ fun EquipmentsListScreen(
                             }
                         }
                         navController.navigate(ListDest.ListScreen.route)
-                    } else if (currentUser?.userType == UserType.ADMIN) {
-                        navController.navigate(GymDest.AddEquipment.route)
                     }
                 }, shape = CircleShape, containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Equipment")
             }
 
-            if (currentUser?.userType != UserType.ADMIN) {
+            if (currentUser?.userType == UserType.ADMIN) {
                 Button(
                     enabled = newEquipmentSelected && equipmentsListState !is ApiResult.Loading && updateEquipmentState !is ApiResult.Loading,
                     modifier = Modifier

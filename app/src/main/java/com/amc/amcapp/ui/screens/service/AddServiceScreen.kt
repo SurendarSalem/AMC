@@ -54,7 +54,6 @@ import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.ui.AnimatedSectionCard
 import com.amc.amcapp.ui.ApiResult
 import com.amc.amcapp.ui.AppTextField
-import com.amc.amcapp.ui.screens.gym.SpareItem
 import com.amc.amcapp.ui.showSnackBar
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.BubbleProgressBar

@@ -22,6 +22,7 @@ import com.amc.amcapp.ComplaintUiItem
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.EquipmentUiItem
 import com.amc.amcapp.equipments.spares.SpareUiItem
+import com.amc.amcapp.ui.QuantitySelector
 import com.amc.amcapp.ui.theme.LocalDimens
 import com.amc.amcapp.util.Avatar
 
@@ -30,15 +31,29 @@ fun SpareItem(
     spareUiItem: SpareUiItem,
     onCheckedChanged: (Boolean) -> Unit,
     onSpareClicked: (spare: SpareUiItem) -> Unit,
+    onQuantityChange: (Int) -> Unit,
+    isQuantityNeeded: Boolean = true
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = LocalDimens.current.spacingLarge.dp)
             .clickable {
                 onSpareClicked(spareUiItem)
             }) {
         Text(spareUiItem.spare.name)
         Spacer(modifier = Modifier.weight(1F))
+        if (spareUiItem.isSelected && isQuantityNeeded) {
+            QuantitySelector(
+                quantity = spareUiItem.requiredQuantity,
+                onQuantityChange = { newQuantity ->
+                    onQuantityChange(newQuantity)
+                },
+                modifier = Modifier.align(Alignment.CenterVertically),
+                max = 10
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         Checkbox(checked = spareUiItem.isSelected, onCheckedChange = onCheckedChanged)
     }
 }

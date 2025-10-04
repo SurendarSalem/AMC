@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.amc.amcapp.AuthRepository
 import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.equipments.IEquipmentsRepository
+import com.amc.amcapp.model.AmcPackage
 import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.User
@@ -40,7 +41,7 @@ data class AddUserState(
     val gymName: String = "",
     val isLoading: Boolean = false,
     val isAmcEnabled: Boolean = false,
-    val amcPackage: Spare? = null
+    val amcPackage: AmcPackage? = null
 )
 
 fun AddUserState.toUser(): User {
@@ -270,7 +271,7 @@ class AddUserViewModel(
         )
     }
 
-    fun onAmcPackageChanged(amcPackage: Spare) {
+    fun onAmcPackageChanged(amcPackage: AmcPackage) {
         _addUserState.value = _addUserState.value.copy(amcPackage = amcPackage)
     }
 

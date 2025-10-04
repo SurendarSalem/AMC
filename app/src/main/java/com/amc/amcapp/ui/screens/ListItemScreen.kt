@@ -13,6 +13,7 @@ import com.amc.amcapp.Equipment
 import com.amc.amcapp.equipments.spares.toUiItem
 import com.amc.amcapp.model.AMC
 import com.amc.amcapp.model.AmcPackage
+import com.amc.amcapp.model.AmcPackageDetails
 import com.amc.amcapp.model.Spare
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.UserType
@@ -45,7 +46,7 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
 
         ListTypeKey.AMCS -> Triple("amc", AMC::class.java, Pair("", ""))
         ListTypeKey.EQUIPMENTS -> Triple("equipments", Equipment::class.java, Pair("", ""))
-        ListTypeKey.AMC_PACKAGE -> Triple("amc_packages", Spare::class.java, Pair("", ""))
+        ListTypeKey.AMC_PACKAGE -> Triple("amc_packages", AmcPackage::class.java, Pair("", ""))
     }
     val vm: SearchViewModel<Any> = koinViewModel { parametersOf(clazz) }
 
@@ -64,23 +65,28 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
                             isSelected = selectedSpares.contains(item)
                         })
                     }
-                    SpareItem(spareUiItem = spareUiItems, onCheckedChanged = { isChecked ->
-                        scope.launch {
-                            selectedSpares =
-                                handle?.get<List<Spare>>("selectedSpares") ?: emptyList()
-                            spareUiItems = spareUiItems.copy(isSelected = isChecked)
+                    SpareItem(
+                        spareUiItem = spareUiItems,
+                        isQuantityNeeded = false,
+                        onCheckedChanged = { isChecked ->
+                            scope.launch {
+                                selectedSpares =
+                                    handle?.get<List<Spare>>("selectedSpares") ?: emptyList()
+                                spareUiItems = spareUiItems.copy(isSelected = isChecked)
 
-                            if (isChecked) {
-                                val updatedList = selectedSpares + item
-                                handle?.set("selectedSpares", updatedList)
-                            } else {
-                                val updatedList = selectedSpares - item
-                                handle?.set("selectedSpares", updatedList)
+                                if (isChecked) {
+                                    val updatedList = selectedSpares + item
+                                    handle?.set("selectedSpares", updatedList)
+                                } else {
+                                    val updatedList = selectedSpares - item
+                                    handle?.set("selectedSpares", updatedList)
+                                }
                             }
-                        }
-                    }, onSpareClicked = { spare ->
+                        },
+                        onSpareClicked = { spare ->
 
-                    })
+                        },
+                        onQuantityChange = { quantity -> })
                 }
 
                 ListTypeKey.COMPLAINTS -> {

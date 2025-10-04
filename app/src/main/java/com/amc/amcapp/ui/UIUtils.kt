@@ -26,15 +26,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AssistChip
@@ -48,6 +51,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -75,6 +79,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
@@ -564,6 +569,52 @@ fun TrailingIconsButton(
         }
     }
 }
+
+@Composable
+fun QuantitySelector(
+    quantity: Int,
+    onQuantityChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    min: Int = 0,
+    max: Int = Int.MAX_VALUE
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = { if (quantity > min) onQuantityChange(quantity - 1) },
+            enabled = quantity > min
+        ) {
+            Icon(
+                imageVector = Icons.Default.Remove,
+                contentDescription = "Decrease",
+                tint = if (quantity > min) MaterialTheme.colorScheme.primary else Color.Gray
+            )
+        }
+
+        Text(
+            text = quantity.toString(),
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .widthIn(min = 24.dp),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        IconButton(
+            onClick = { if (quantity < max) onQuantityChange(quantity + 1) },
+            enabled = quantity < max
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Increase",
+                tint = if (quantity < max) MaterialTheme.colorScheme.primary else Color.Gray
+            )
+        }
+    }
+}
+
 
 
 

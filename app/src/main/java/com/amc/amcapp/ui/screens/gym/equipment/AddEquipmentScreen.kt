@@ -53,6 +53,7 @@ import com.amc.amcapp.util.Constants
 import com.amc.amcapp.util.openAppSettings
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -81,19 +82,6 @@ fun AddEquipmentScreen(
 
     var isEditEnabled by rememberSaveable { mutableStateOf(true) }
 
-    // Collect selected spares
-    LaunchedEffect(Unit) {
-        savedStateHandle.getStateFlow("selectedSpares", emptyList<Spare>()).collect {
-            addEquipmentViewModel.onSparesChanged(it)
-        }
-    }
-
-    // Collect selected complaints
-    LaunchedEffect(Unit) {
-        savedStateHandle.getStateFlow("selectedComplaints", emptyList<Complaint>()).collect {
-            addEquipmentViewModel.onComplaintsChanged(it)
-        }
-    }
 
     LaunchedEffect(equipment?.id) {
         if (equipment != null) {
@@ -102,6 +90,25 @@ fun AddEquipmentScreen(
             onMenuUpdated(false, Icons.Default.Edit) {}
         }
     }
+
+    LaunchedEffect(Unit) {
+        combine(
+            savedStateHandle.getStateFlow("selectedSpares", emptyList<Spare>()),
+            savedStateHandle.getStateFlow("selectedComplaints", emptyList<Complaint>())
+        ) { spares, complaints ->
+            spares to complaints
+        }.collect { (spares, complaints) ->
+            if (spares.isNotEmpty()) {
+                addEquipmentViewModel.onSparesChanged(spares)
+                savedStateHandle["selectedSpares"] = emptyList<Spare>()
+            }
+            if (complaints.isNotEmpty()) {
+                addEquipmentViewModel.onComplaintsChanged(complaints)
+                savedStateHandle["selectedComplaints"] = emptyList<Complaint>()
+            }
+        }
+    }
+
 
     // Collect notify state
     LaunchedEffect(Unit) {
@@ -223,8 +230,7 @@ fun AddEquipmentScreen(
 private fun EquipmentHeader(isEditable: Boolean, equipment: Equipment?) {
     AnimatedContent(
         targetState = isEditable, transitionSpec = {
-            fadeIn(tween(300)) + slideInVertically { it / 2 } togetherWith
-                    fadeOut(tween(300)) + slideOutVertically { -it / 2 }
+            fadeIn(tween(300)) + slideInVertically { it / 2 } togetherWith fadeOut(tween(300)) + slideOutVertically { -it / 2 }
         }, label = "HeaderTransition"
     ) { editable ->
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -251,7 +257,9 @@ private fun EquipmentHeader(isEditable: Boolean, equipment: Equipment?) {
 
 @Composable
 private fun SparesSection(
-    selectedSpares: List<Spare>, navController: NavController, savedStateHandle: SavedStateHandle
+    selectedSpares: List<Spare>,
+    navController: NavController,
+    savedStateHandle: SavedStateHandle
 ) {
     Row(
         modifier = Modifier
@@ -345,7 +353,9 @@ private fun ComplaintsSection(
 
 @Composable
 fun EquipmentTypeSelection(
-    addEquipmentState: AddEquipmentState, viewModel: AddEquipmentViewModel, isEditEnabled: Boolean
+    addEquipmentState: AddEquipmentState,
+    viewModel: AddEquipmentViewModel,
+    isEditEnabled: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -381,5 +391,8 @@ fun EquipmentTypeSelection(
     }
 }
 
-@Composable fun SpacerMedium() = Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
-@Composable fun SpacerLarge() = Spacer(Modifier.height(20.dp))
+@Composable
+fun SpacerMedium() = Spacer(Modifier.height(LocalDimens.current.spacingMedium.dp))
+
+@Composable
+fun SpacerLarge() = Spacer(Modifier.height(20.dp))

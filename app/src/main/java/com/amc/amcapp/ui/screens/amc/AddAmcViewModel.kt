@@ -1,14 +1,14 @@
 package com.amc.amcapp.ui.screens.amc
 
-import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import com.amc.amcapp.Equipment
 import com.amc.amcapp.data.IAmcRepository
 import com.amc.amcapp.data.IUserRepository
 import com.amc.amcapp.data.UserRepository
-import com.amc.amcapp.equipments.IEquipmentsRepository
 import com.amc.amcapp.model.AMC
+import com.amc.amcapp.model.AmcPackage
+import com.amc.amcapp.model.AmcPackageDetails
 import com.amc.amcapp.model.NotifyState
 import com.amc.amcapp.model.RecordImage
 import com.amc.amcapp.model.RecordItem
@@ -17,14 +17,12 @@ import com.amc.amcapp.model.Status
 import com.amc.amcapp.model.User
 import com.amc.amcapp.model.toRecordItem
 import com.amc.amcapp.ui.ApiResult
-import com.google.firebase.firestore.util.Util
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
 
 class AddAmcViewModel(
     val amcRepository: IAmcRepository, val userRepository: IUserRepository
@@ -53,6 +51,12 @@ class AddAmcViewModel(
         )
     }
 
+    fun onAmcPackageDetailsChanged(amcPackage: AmcPackage) {
+        _amcState.value = _amcState.value.copy(
+            amcPackageDetails = AmcPackageDetails(amcPackage.id, amcPackage.name, amcPackage.price)
+        )
+    }
+
     fun onTimeChange(time: String) {
         _amcState.value = _amcState.value.copy(createdTime = time)
     }
@@ -75,15 +79,13 @@ class AddAmcViewModel(
     suspend fun addAmcToFirebase(equipmentList: List<Equipment>?) {
         _addAmcState.value = ApiResult.Loading
         equipmentList?.let { it ->
-            _amcState.value = amcState.value.copy(
-                recordItems = it.map {
-                    RecordItem(
-                        equipmentId = it.id, equipmentName = it.name
-                    )
-                }, equipmentIds = it.map {
-                    it.id
-                }
-            )
+            _amcState.value = amcState.value.copy(recordItems = it.map {
+                RecordItem(
+                    equipmentId = it.id, equipmentName = it.name
+                )
+            }, equipmentIds = it.map {
+                it.id
+            })
         }
 
         amcRepository.addAmc(amcState.value).collect { result ->
@@ -111,17 +113,21 @@ class AddAmcViewModel(
         _amcState.value = amc
         recordUiItems.value = amc.recordItems.mapIndexed { index, recordItem ->
             RecordUiItem(
-                recordItem = recordItem, beforeImage = RecordImage(
+                recordItem = recordItem,
+                beforeImage = RecordImage(
                     imageUrl = recordItem.beforeImageUrl,
                     imageUri = recordItem.beforeImageUri,
                     shouldUseUrl = recordItem.beforeImageUrl.isNotEmpty(),
                     shouldUseUri = recordItem.beforeImageUri.isNotEmpty(),
-                ), afterImage = RecordImage(
+                ),
+                afterImage = RecordImage(
                     imageUrl = recordItem.afterImageUrl,
                     imageUri = recordItem.afterImageUri,
                     shouldUseUrl = recordItem.afterImageUrl.isNotEmpty(),
                     shouldUseUri = recordItem.afterImageUri.isNotEmpty()
-                ), addedSpares = recordItem.addedSpares, totalSpares = amc.equipments[index].spares
+                ),
+                addedSpares = recordItem.addedSpares,
+                totalSpares = if (amc.equipments.isNotEmpty()) amc.equipments[index].spares else emptyList()
             )
         }
     }

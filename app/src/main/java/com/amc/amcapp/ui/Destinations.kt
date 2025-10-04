@@ -3,6 +3,7 @@ package com.amc.amcapp.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.BusinessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HomeRepairService
@@ -16,27 +17,29 @@ enum class DrawerDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
     Home("home", "Home", Icons.Default.Home), Users(
-        "users",
-        "Users",
-        Icons.Default.Person
+        "users", "Users", Icons.Default.Person
     ),
     Services("services", "AMC & Services", Icons.Default.HomeRepairService),
 
-    DrawerEquipments("drawerEquipments", "Equipments", Icons.Default.SportsGymnastics),
-
-    Settings("settings", "Settings", Icons.Default.Settings),
+    DrawerEquipments(
+        "drawerEquipments",
+        "Equipments",
+        Icons.Default.SportsGymnastics
+    ),
+    Spares("spares", "Spares", Icons.Default.Build),
 
     Sales("sales", "Sales", Icons.Default.ShoppingBasket),
 
     AmcPackages("amc_packages", "AMC Packages", Icons.AutoMirrored.Default.List),
 
-    Spares("spares", "Spares", Icons.AutoMirrored.Default.List)
+    Settings("settings", "Settings", Icons.Default.Settings),
+
 }
 
 enum class AmcDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
-    AddAmcPackages("add_amc_packages", "Add AMC Package", Icons.AutoMirrored.Default.List)
+    AddAmcPackages("add_amc_packages", "Add AMC Package", Icons.AutoMirrored.Default.List),
 }
 
 enum class SpareDest(
@@ -48,10 +51,20 @@ enum class SpareDest(
 enum class UserDest(
     val route: String, val label: String, val icon: ImageVector, val badge: String? = null
 ) {
-    AddUser("customers/addUser", "Add User", Icons.Default.Add),
-    EditUser("customers/editUser", "Edit User", Icons.Default.Add),
-    Equipments("equipments", "Equipments", Icons.Default.SportsGymnastics),
-    AddAMC("customers/editUser/addAMC", "Add AMC", Icons.Default.SportsGymnastics)
+    AddUser("customers/addUser", "Add User", Icons.Default.Add), EditUser(
+        "customers/editUser",
+        "Edit User",
+        Icons.Default.Add
+    ),
+    Equipments(
+        "equipments",
+        "Equipments",
+        Icons.Default.SportsGymnastics
+    ),
+    AddAMC("customers/editUser/addAMC", "Add AMC", Icons.Default.SportsGymnastics),
+
+
+    AmcReport("customers/editUser/addAMC/amc_report", "AMC Report", Icons.AutoMirrored.Default.List)
 }
 
 enum class GymDest(
@@ -63,8 +76,11 @@ enum class GymDest(
 }
 
 enum class BottomDest(val route: String, val label: String, val icon: ImageVector) {
-    Amc("amc", "AMC", Icons.AutoMirrored.Filled.List),
-    Services("services", "Services", Icons.Default.SportsGymnastics),
+    Amc("amc", "AMC", Icons.AutoMirrored.Filled.List), Services(
+        "services",
+        "Services",
+        Icons.Default.SportsGymnastics
+    ),
     Favorites("sales", "Sales", Icons.Default.BusinessCenter)
 }
 
