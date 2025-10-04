@@ -58,7 +58,7 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
             when (key) {
                 ListTypeKey.SPARES -> {
                     onTitleUpdated("Select Spares")
-                    var selectedSpares = handle?.get<List<Spare>>("selectedSpares") ?: emptyList()
+                    var selectedSpares = handle?.get<List<Spare>>(Constants.EXISTING_SPARES) ?: emptyList()
 
                     var spareUiItems by remember(item) {
                         mutableStateOf((item as Spare).toUiItem().apply {
@@ -92,7 +92,7 @@ fun ListItemScreen(navController: NavHostController, onTitleUpdated: (String) ->
                 ListTypeKey.COMPLAINTS -> {
                     onTitleUpdated("Select Complaints")
                     var selectedComplaints =
-                        handle?.get<List<Complaint>>("selectedComplaints") ?: emptyList()
+                        handle?.get<List<Complaint>>(Constants.SELECTED_COMPLAINTS) ?: emptyList()
 
                     var complaintsUiItem by remember {
                         mutableStateOf((item as Complaint).toUiItem().apply {

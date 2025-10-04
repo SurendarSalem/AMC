@@ -271,7 +271,7 @@ private fun SparesSection(
             )
             .clickable {
                 savedStateHandle[Constants.LIST_TYPE_KEY] = ListTypeKey.SPARES
-                savedStateHandle["selectedSpares"] = selectedSpares
+                savedStateHandle[Constants.EXISTING_SPARES] = selectedSpares
                 navController.navigate(ListDest.ListScreen.route) {
                     launchSingleTop = true
                     restoreState = true
@@ -319,7 +319,7 @@ private fun ComplaintsSection(
             )
             .clickable {
                 savedStateHandle[Constants.LIST_TYPE_KEY] = ListTypeKey.COMPLAINTS
-                savedStateHandle["selectedComplaints"] = selectedComplaints
+                savedStateHandle[Constants.SELECTED_COMPLAINTS] = selectedComplaints
                 navController.navigate(ListDest.ListScreen.route) {
                     launchSingleTop = true
                     restoreState = true
